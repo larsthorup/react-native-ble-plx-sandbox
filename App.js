@@ -18,10 +18,7 @@ import {
   View,
 } from 'react-native';
 
-import { BleManager } from 'react-native-ble-plx';
-
-// TODO: encapsulate
-const bleManager = new BleManager();
+import getBleManager from './ble';
 
 const Section = ({ children, title }): Node => {
   return (
@@ -37,25 +34,23 @@ const Section = ({ children, title }): Node => {
 };
 
 const App: () => Node = () => {
-  console.log('App.render');
   const [bleState, setBleState] = useState('PoweredOn'); // TODO: bleManager.onStateChange
   const [deviceSet, setDeviceSet] = useState({});
   useEffect(() => {
     if (bleState !== 'PoweredOn') return;
-    console.log('App.deviceScanEffect.enter');
+    const bleManager = getBleManager();
     bleManager.startDeviceScan(null, null, (error, device) => {
       if (error) {
         console.log('bleManager.onDeviceScanError', error);
         return;
       }
       if (device.name && !deviceSet[device.name]) {
-        console.log(device.name);
+        // console.log(device.name);
         setDeviceSet(Object.assign({}, deviceSet, { [device.name]: true }));
       }
       // TODO: remove device
     });
     return () => {
-      console.log('App.deviceScanEffect.enter');
       bleManager.stopDeviceScan();
     }
   });
