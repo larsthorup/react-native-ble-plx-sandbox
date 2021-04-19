@@ -39,7 +39,9 @@ const App: () => Node = () => {
   useEffect(() => {
     if (bleState !== 'PoweredOn') return;
     const bleManager = getBleManager();
-    bleManager.startDeviceScan(null, null, (error, device) => {
+    const uuidList = null;
+    const scanOptions = null;
+    bleManager.startDeviceScan(uuidList, scanOptions, (error, device) => {
       if (error) {
         console.log('bleManager.onDeviceScanError', error);
         return;
@@ -64,7 +66,7 @@ const App: () => Node = () => {
             {bleState}
           </Section>
           <Section title="BLE device list">
-            {Object.keys(deviceSet).join(', ')}
+            {Object.keys(deviceSet).sort().join(', ')}
           </Section>
         </View>
       </ScrollView>

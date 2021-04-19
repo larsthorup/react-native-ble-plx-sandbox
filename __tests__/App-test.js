@@ -8,23 +8,27 @@ import React from 'react';
 
 jest.mock('../ble', () => {
   const mockBleManager = {
-    // TODO: auto mock some scanned device
-    startDeviceScan: () => { },
+    startDeviceScan: (uuidList, scanOptions, listener) => {
+      // TODO: wait for test to trigger this event
+      const error = null;
+      listener(error, { name: 'SomeDeviceName' });
+      listener(error, { name: 'SomeOtherName' });
+    },
     stopDeviceScan: () => { }
   };
-  return jest.fn(() => {
+  return () => {
     return mockBleManager;
-  });
+  };
 });
 
 import App from '../App';
 
-import { render } from '@testing-library/react-native';
+import { render, waitFor } from '@testing-library/react-native';
 
 
 it('renders correctly', async () => {
   const { getByA11yLabel } = render(<App />);
   expect(getByA11yLabel('BLE state')).toHaveTextContent('PoweredOn');
   expect(getByA11yLabel('BLE device list')).toHaveTextContent('');
-  // TODO: await waitFor scan results
+  await waitFor(() => expect(getByA11yLabel('BLE device list')).toHaveTextContent('SomeDeviceName, SomeOtherName'));
 });
