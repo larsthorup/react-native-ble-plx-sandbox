@@ -8,6 +8,7 @@ import React from 'react';
 
 jest.mock('../ble', () => {
   const mockBleManager = {
+    // TODO: auto mock some scanned device
     startDeviceScan: () => { },
     stopDeviceScan: () => { }
   };
@@ -18,13 +19,12 @@ jest.mock('../ble', () => {
 
 import App from '../App';
 
-// Note: test renderer must be required after react-native.
-import renderer, { act } from 'react-test-renderer';
+import { render } from '@testing-library/react-native';
+
 
 it('renders correctly', async () => {
-  // TODO: use react-native-testing-library
-  await act(async () => {
-    renderer.create(<App />);
-  });
+  const { getByA11yLabel } = render(<App />);
+  expect(getByA11yLabel('BLE state')).toHaveTextContent('PoweredOn');
+  expect(getByA11yLabel('BLE device list')).toHaveTextContent('');
   // TODO: await waitFor scan results
 });

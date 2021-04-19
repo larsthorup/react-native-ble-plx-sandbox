@@ -26,7 +26,7 @@ const Section = ({ children, title }): Node => {
       <Text style={styles.sectionTitle}>
         {title}
       </Text>
-      <Text style={styles.sectionDescription}>
+      <Text style={styles.sectionDescription} accessibilityLabel={title}>
         {children}
       </Text>
     </View>
