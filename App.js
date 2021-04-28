@@ -6,26 +6,23 @@
  * @flow strict-local
  */
 
-import React, { useEffect, useState } from 'react';
-import type { Node } from 'react';
+import React, {useEffect, useState} from 'react';
+import type {Node} from 'react';
 import {
   SafeAreaView,
   ScrollView,
   StatusBar,
   StyleSheet,
   Text,
-  useColorScheme,
   View,
 } from 'react-native';
 
 import getBleManager from './ble';
 
-const Section = ({ children, title }): Node => {
+const Section = ({children, title}): Node => {
   return (
     <View style={styles.sectionContainer}>
-      <Text style={styles.sectionTitle}>
-        {title}
-      </Text>
+      <Text style={styles.sectionTitle}>{title}</Text>
       <Text style={styles.sectionDescription} accessibilityLabel={title}>
         {children}
       </Text>
@@ -34,10 +31,12 @@ const Section = ({ children, title }): Node => {
 };
 
 const App: () => Node = () => {
-  const [bleState, setBleState] = useState('PoweredOn'); // TODO: bleManager.onStateChange
+  const [bleState] = useState('PoweredOn'); // TODO: bleManager.onStateChange
   const [deviceSet, setDeviceSet] = useState({});
   useEffect(() => {
-    if (bleState !== 'PoweredOn') return;
+    if (bleState !== 'PoweredOn') {
+      return;
+    }
     const bleManager = getBleManager();
     const uuidList = null;
     const scanOptions = null;
@@ -48,13 +47,13 @@ const App: () => Node = () => {
       }
       if (device.name && !deviceSet[device.name]) {
         // console.log(device.name);
-        setDeviceSet(Object.assign({}, deviceSet, { [device.name]: true }));
+        setDeviceSet(Object.assign({}, deviceSet, {[device.name]: true}));
       }
       // TODO: remove device
     });
     return () => {
       bleManager.stopDeviceScan();
-    }
+    };
   });
   return (
     <SafeAreaView>
@@ -62,9 +61,7 @@ const App: () => Node = () => {
       <ScrollView contentInsetAdjustmentBehavior="automatic">
         <View>
           <Section title="BLE Sandbox" />
-          <Section title="BLE state">
-            {bleState}
-          </Section>
+          <Section title="BLE state">{bleState}</Section>
           <Section title="BLE device list">
             {Object.keys(deviceSet).sort().join(', ')}
           </Section>

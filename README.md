@@ -4,6 +4,7 @@ Setup your environment: https://reactnative.dev/docs/environment-setup
 
 ```bash
 npm install
+npm test
 ```
 
 ## Debug in simulator or phone
