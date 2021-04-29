@@ -22,3 +22,11 @@ Terminal 2:
 ```bash
 npm run android
 ```
+
+## Deploy app on phone
+
+TBD
+
+```
+npm run log:android
+```

@@ -6,8 +6,8 @@
  * @flow strict-local
  */
 
-import React, {useEffect, useState} from 'react';
-import type {Node} from 'react';
+import React, { useEffect, useState } from 'react';
+import type { Node } from 'react';
 import {
   SafeAreaView,
   ScrollView,
@@ -19,7 +19,7 @@ import {
 
 import getBleManager from './ble';
 
-const Section = ({children, title}): Node => {
+const Section = ({ children, title }): Node => {
   return (
     <View style={styles.sectionContainer}>
       <Text style={styles.sectionTitle}>{title}</Text>
@@ -46,8 +46,8 @@ const App: () => Node = () => {
         return;
       }
       if (device.name && !deviceSet[device.name]) {
-        // console.log(device.name);
-        setDeviceSet(Object.assign({}, deviceSet, {[device.name]: true}));
+        // console.log('bleManager.onDeviceScan', device.name);
+        setDeviceSet(Object.assign({}, deviceSet, { [device.name]: true }));
       }
       // TODO: remove device
     });
