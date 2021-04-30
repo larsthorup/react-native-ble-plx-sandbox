@@ -13,9 +13,11 @@ import { Provider } from 'react-redux';
 import thunkMiddleware from 'redux-thunk';
 import { applyMiddleware, compose, createStore } from 'redux';
 import { reducer } from './store';
+import { deviceScanning } from './saga';
 
 const middleware = [thunkMiddleware];
 const store = createStore(reducer, compose(applyMiddleware(...middleware)));
+store.dispatch(deviceScanning);
 
 const App: () => Node = () => {
   return (

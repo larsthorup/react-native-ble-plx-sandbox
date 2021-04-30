@@ -28,3 +28,20 @@ export const reducer = (state, action) => {
 
   return reducerForType(state, action);
 };
+
+export const deviceScanned = register('deviceScanned', (state, { device }) => {
+  if (!state.ble.deviceSet[device.name]) {
+    return {
+      ...state,
+      ble: {
+        ...state.ble,
+        deviceSet: {
+          ...state.ble.deviceSet,
+          [device.name]: true,
+        },
+      },
+    };
+  } else {
+    return state;
+  }
+});
