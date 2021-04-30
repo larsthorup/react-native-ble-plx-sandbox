@@ -1,40 +1,16 @@
-/**
- * @format
- */
-
 import 'react-native';
 import React from 'react';
-
-jest.mock('../ble', () => {
-  const mockBleManager = {
-    onStateChange: (onStateChange) => {
-      // TODO: wait for bleMock to trigger this event
-      onStateChange('PoweredOn');
-    },
-    startDeviceScan: (uuidList, scanOptions, onDeviceScan) => {
-      // TODO: wait for bleMock to trigger this event
-      onDeviceScan(null, { name: 'SomeDeviceName' });
-      onDeviceScan(null, { name: 'SomeOtherName' });
-    },
-    stopDeviceScan: () => { },
-  };
-  return () => {
-    return mockBleManager;
-  };
-});
-
-import App from '../App';
-
 import { render, waitFor } from '@testing-library/react-native';
 
-const bleMock = {
-  playUntil: (label) => {
-    // TODO: trigger events
-  },
-};
+import App from '../App';
+import getBleManager from '../ble';
+
+jest.mock('../ble');
 
 describe('App', () => {
+
   it('should display list of BLE devices', async () => {
+    const bleManagerMock = getBleManager();
 
     // when: render the app
     const { getByA11yLabel } = render(<App />);
@@ -44,7 +20,7 @@ describe('App', () => {
     expect(getByA11yLabel('BLE device list')).toHaveTextContent('');
 
     // when: simulating some BLE traffic
-    bleMock.playUntil('scanned');
+    bleManagerMock.playUntil('scanned');
 
     // then: eventually the scanned devices are displayed
     await waitFor(() =>
