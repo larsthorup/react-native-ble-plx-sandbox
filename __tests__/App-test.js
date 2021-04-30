@@ -36,6 +36,7 @@ describe('App', () => {
     const { getByA11yLabel } = render(<App />);
 
     // then: initially no devices are displayed
+    expect(getByA11yLabel('BLE state')).toHaveTextContent('PoweredOn');
     expect(getByA11yLabel('BLE device list')).toHaveTextContent('');
 
     // when: simulating some BLE traffic
