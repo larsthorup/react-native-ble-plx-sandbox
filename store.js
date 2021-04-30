@@ -1,6 +1,6 @@
 export const initialState = {
   ble: {
-    powerState: 'PoweredOn', // TODO: bleManager.onStateChange
+    powerState: null,
     deviceSet: {},
   },
 };
@@ -29,7 +29,7 @@ export const reducer = (state, action) => {
   return reducerForType(state, action);
 };
 
-export const deviceScanned = register('deviceScanned', (state, { device }) => {
+export const bleDeviceScanned = register('bleDeviceScanned', (state, { device }) => {
   if (!state.ble.deviceSet[device.name]) {
     return {
       ...state,
@@ -39,6 +39,20 @@ export const deviceScanned = register('deviceScanned', (state, { device }) => {
           ...state.ble.deviceSet,
           [device.name]: true,
         },
+      },
+    };
+  } else {
+    return state;
+  }
+});
+
+export const blePowerStateChanged = register('blePowerStateChanged', (state, { powerState }) => {
+  if (state.ble.powerState !== powerState) {
+    return {
+      ...state,
+      ble: {
+        ...state.ble,
+        powerState,
       },
     };
   } else {

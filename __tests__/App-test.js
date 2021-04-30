@@ -7,6 +7,10 @@ import React from 'react';
 
 jest.mock('../ble', () => {
   const mockBleManager = {
+    onStateChange: (onStateChange) => {
+      // TODO: wait for bleMock to trigger this event
+      onStateChange('PoweredOn');
+    },
     startDeviceScan: (uuidList, scanOptions, onDeviceScan) => {
       // TODO: wait for bleMock to trigger this event
       onDeviceScan(null, { name: 'SomeDeviceName' });
