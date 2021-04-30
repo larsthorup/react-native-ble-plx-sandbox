@@ -7,13 +7,12 @@ import React from 'react';
 
 jest.mock('../ble', () => {
   const mockBleManager = {
-    startDeviceScan: (uuidList, scanOptions, listener) => {
-      // TODO: wait for test to trigger this event
-      const error = null;
-      listener(error, {name: 'SomeDeviceName'});
-      listener(error, {name: 'SomeOtherName'});
+    startDeviceScan: (uuidList, scanOptions, onDeviceScan) => {
+      // TODO: wait for bleMock to trigger this event
+      onDeviceScan(null, { name: 'SomeDeviceName' });
+      onDeviceScan(null, { name: 'SomeOtherName' });
     },
-    stopDeviceScan: () => {},
+    stopDeviceScan: () => { },
   };
   return () => {
     return mockBleManager;
@@ -22,15 +21,31 @@ jest.mock('../ble', () => {
 
 import App from '../App';
 
-import {render, waitFor} from '@testing-library/react-native';
+import { render, waitFor } from '@testing-library/react-native';
 
-it('renders correctly', async () => {
-  const {getByA11yLabel} = render(<App />);
-  expect(getByA11yLabel('BLE state')).toHaveTextContent('PoweredOn');
-  expect(getByA11yLabel('BLE device list')).toHaveTextContent('');
-  await waitFor(() =>
-    expect(getByA11yLabel('BLE device list')).toHaveTextContent(
-      'SomeDeviceName, SomeOtherName',
-    ),
-  );
+const bleMock = {
+  playUntil: (label) => {
+    // TODO: trigger events
+  },
+};
+
+describe('App', () => {
+  it('should display list of BLE devices', async () => {
+
+    // when: render the app
+    const { getByA11yLabel } = render(<App />);
+
+    // then: initially no devices are displayed
+    expect(getByA11yLabel('BLE device list')).toHaveTextContent('');
+
+    // when: simulating some BLE traffic
+    bleMock.playUntil('scanned');
+
+    // then: eventually the scanned devices are displayed
+    await waitFor(() =>
+      expect(getByA11yLabel('BLE device list')).toHaveTextContent(
+        'SomeDeviceName, SomeOtherName',
+      ),
+    );
+  });
 });

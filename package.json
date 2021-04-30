@@ -7,7 +7,7 @@
     "ios": "react-native run-ios",
     "log:android": "adb logcat *:S ReactNative:V ReactNativeJS:V",
     "start": "react-native start",
-    "test": "eslint . --fix && jest"
+    "test": "eslint . --fix --ignore-path .gitignore && jest"
   },
   "dependencies": {
     "@testing-library/jest-native": "^4.0.1",
