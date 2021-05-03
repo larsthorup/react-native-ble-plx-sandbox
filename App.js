@@ -8,23 +8,15 @@
 
 import React from 'react';
 import type { Node } from 'react';
-import DeviceList from './DeviceList';
-import { Provider } from 'react-redux';
-import thunkMiddleware from 'redux-thunk';
-import { applyMiddleware, compose, createStore } from 'redux';
-import { reducer } from './store';
-import { deviceScanning } from './service';
 
-const middleware = [thunkMiddleware];
-const store = createStore(reducer, compose(applyMiddleware(...middleware)));
-store.dispatch(deviceScanning);
+import DeviceList from './DeviceList';
+import { configureStore } from './store';
+import { withStore } from './withStore';
+
+const store = configureStore();
 
 const App: () => Node = () => {
-  return (
-    <Provider store={store}>
-      <DeviceList />
-    </Provider>
-  );
+  return withStore(<DeviceList />, store);
 };
 
 export default App;

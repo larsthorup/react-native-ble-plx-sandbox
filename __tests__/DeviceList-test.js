@@ -2,18 +2,20 @@ import 'react-native';
 import React from 'react';
 import { render, waitFor } from '@testing-library/react-native';
 
-import App from '../App';
+import DeviceList from '../DeviceList';
 import getBleManager from '../ble';
+import { configureStore } from '../store';
+import { withStore } from '../withStore';
 
 jest.mock('../ble');
 
-describe('App', () => {
+describe('DeviceList', () => {
 
   it('should display list of BLE devices', async () => {
     const bleManagerMock = getBleManager();
 
     // when: render the app
-    const { getByA11yLabel } = render(<App />);
+    const { getByA11yLabel } = render(withStore(<DeviceList />, configureStore()));
 
     // then: initially no devices are displayed
     expect(getByA11yLabel('BLE state')).toHaveTextContent('PoweredOn');

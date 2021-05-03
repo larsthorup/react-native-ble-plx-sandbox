@@ -1,3 +1,8 @@
+import { applyMiddleware, compose, createStore } from 'redux';
+import thunkMiddleware from 'redux-thunk';
+
+import { deviceScanning } from './service';
+
 export const initialState = {
   ble: {
     powerState: null,
@@ -27,6 +32,13 @@ export const reducer = (state, action) => {
   }
 
   return reducerForType(state, action);
+};
+
+export const configureStore = () => {
+  const middleware = [thunkMiddleware];
+  const store = createStore(reducer, compose(applyMiddleware(...middleware)));
+  store.dispatch(deviceScanning);
+  return store;
 };
 
 export const bleDeviceScanned = register('bleDeviceScanned', (state, { device }) => {
