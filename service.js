@@ -1,5 +1,5 @@
 import { blePowerStateChanged, bleDeviceScanned } from './store';
-import getBleManager from './ble';
+import { getBleManager } from './ble';
 
 export const deviceScanning = async (dispatch, getState) => {
   const bleManager = getBleManager();
@@ -15,7 +15,6 @@ export const deviceScanning = async (dispatch, getState) => {
             return;
           }
           if (device.name) {
-            // console.log('bleManager.onDeviceScan', device.name);
             dispatch(bleDeviceScanned({ device }));
           }
           // TODO: remove device

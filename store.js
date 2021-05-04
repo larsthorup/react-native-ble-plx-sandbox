@@ -3,6 +3,8 @@ import thunkMiddleware from 'redux-thunk';
 
 import { deviceScanning } from './service';
 
+const trace = false;
+
 export const initialState = {
   ble: {
     powerState: null,
@@ -31,6 +33,7 @@ export const reducer = (state, action) => {
     return state;
   }
 
+  if (trace) {console.log('store', action);}
   return reducerForType(state, action);
 };
 
