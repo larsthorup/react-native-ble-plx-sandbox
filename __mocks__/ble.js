@@ -17,26 +17,37 @@ class BleManagerMock {
 
   playNext() {
     const message = this.messageList[this.nextMessageIndex];
-    const { event } = message;
-    switch (event) {
-      case 'onDeviceScan':
-        const { onDeviceScan } = this;
-        if (onDeviceScan) {
-          const error = null;
-          const { device } = message;
-          onDeviceScan(error, device);
-        } else {
-          console.warn(`Message cannot be delivered, as bleManager.startDeviceScan has not yet been called: ${JSON.stringify(message)}`);
-        }
-        break;
-      default:
-        throw new Error(`Unrecognized BLE event in mocked traffic: "${event}"`);
+    const { event, label } = message;
+    if (label) {
+      console.log(`(BleManagerMock: unused label: "${label}")`);
+    } else {
+      switch (event) {
+        case 'onDeviceScan':
+          const { onDeviceScan } = this;
+          if (onDeviceScan) {
+            const error = null;
+            const { device } = message;
+            onDeviceScan(error, device);
+          } else {
+            console.warn(`BleManagerMock: message cannot be delivered, as bleManager.startDeviceScan has not yet been called: ${JSON.stringify(message)}`);
+          }
+          break;
+        default:
+          throw new Error(`BleManagerMock: Unrecognized event "${event}" in message ${JSON.stringify(message)}`);
+      }
     }
     ++this.nextMessageIndex;
   }
 
   playUntil(label) {
-    while (this.nextMessageIndex <= this.messageList.length && this.messageList[this.nextMessageIndex].label !== label) {
+    while (true) {
+      if (this.nextMessageIndex > this.messageList.length) {
+        throw new Error(`BleManagerMock: label "${label}" not found in recording`);
+      }
+      if (this.messageList[this.nextMessageIndex].label === label) {
+        ++this.nextMessageIndex;
+        break;
+      }
       this.playNext();
     }
   }
