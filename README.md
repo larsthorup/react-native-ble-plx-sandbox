@@ -1,5 +1,7 @@
 # react-native-ble-plx-sandbox
 
+[![Build Status](https://travis-ci.com/larsthorup/react-native-ble-plx-sandbox.svg?branch=main)](https://travis-ci.com/larsthorup/react-native-ble-plx-sandbox)
+
 Setup your environment: https://reactnative.dev/docs/environment-setup
 
 ```bash
