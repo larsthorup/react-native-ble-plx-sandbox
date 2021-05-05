@@ -1,6 +1,6 @@
 import 'react-native';
 import React from 'react';
-import { render } from '@testing-library/react-native';
+import { fireEvent, render } from '@testing-library/react-native';
 
 import DeviceList from '../DeviceList';
 import { configureStore } from '../store';
@@ -75,5 +75,36 @@ describe('DeviceList', () => {
       expect.toHaveTextContent('SomeDeviceName'),
       expect.toHaveTextContent('SomeOtherName'),
     ]);
+  });
+
+  it('should start and stop loading device info', async () => {
+    const bleManagerMock = autoMockBleManager([
+      { event: 'onDeviceScan', device: { name: 'SomeDeviceName' } },
+      { event: 'onDeviceScan', device: { name: 'SomeOtherName' } },
+      { label: 'scanned' },
+    ]);
+
+    // when: render the app
+    const { getByA11yLabel, queryByA11yLabel } = render(withStore(<DeviceList />, configureStore()));
+
+    // then: no loading indicator is shown
+    expect(queryByA11yLabel('Connecting to "SomeDeviceName"')).toBeFalsy();
+
+    // when: simulating some BLE traffic
+    act(() => {
+      bleManagerMock.playUntil('scanned'); // Note: causes re-render, so act() is needed
+    });
+
+    // when: clicking a device
+    fireEvent.press(getByA11yLabel('Connect to "SomeDeviceName"'));
+
+    // then: loading indicator is shown
+    expect(queryByA11yLabel('Connecting to "SomeDeviceName"')).toBeTruthy();
+
+    // when: clicking the device again
+    fireEvent.press(getByA11yLabel('Disconnect from "SomeDeviceName"'));
+
+    // then: loading indicator is no longer shown
+    expect(queryByA11yLabel('Connecting to "SomeDeviceName"')).toBeFalsy();
   });
 });

@@ -1,10 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import type { Node } from 'react';
 
 import { useSelector } from 'react-redux';
 
 import {
+  ActivityIndicator,
   FlatList,
+  Pressable,
   SafeAreaView,
   StatusBar,
   StyleSheet,
@@ -14,10 +16,38 @@ import {
 import Section from './Section';
 
 const DeviceItem = ({ name }) => {
+  const [selected, setSelected] = useState(false);
+  const toggleSelected = () => {
+    setSelected(!selected);
+  };
+  const style = {
+    ...styles.deviceItem,
+    ...(selected && styles.deviceItemSelected),
+  };
+  const pressableLabel = selected ? `Disconnect from "${name}"` : `Connect to "${name}"`;
   return (
-    <View accessibilityLabel="BLE device" style={styles.deviceItem}>
-      <Text style={styles.deviceName} accessibilityLabel={name}>{name}</Text>
-    </View>
+    <Pressable
+      accessibilityLabel={pressableLabel}
+      onPress={toggleSelected}
+    >
+      <View
+        accessibilityLabel="BLE device"
+        style={style}
+      >
+        <Text
+          style={styles.deviceName}
+        >
+          {name}
+        </Text>
+      </View>
+      {selected && (
+        <ActivityIndicator
+          accessibilityLabel={`Connecting to "${name}"`}
+          color={styles.deviceItemLoading.color}
+          size="small"
+        />
+      )}
+    </Pressable>
   );
 };
 
@@ -51,6 +81,12 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
     marginVertical: 8,
     padding: 20,
+  },
+  deviceItemLoading: {
+    color: 'lightyellow',
+  },
+  deviceItemSelected: {
+    backgroundColor: '#555555',
   },
   deviceName: {
     color: 'lightyellow',
