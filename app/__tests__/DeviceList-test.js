@@ -15,11 +15,11 @@ describe('DeviceList', () => {
     autoMockBleManager([]);
 
     // when: render the app
-    const { getByA11yLabel } = render(withStore(<DeviceList />, configureStore()));
+    const { queryAllByA11yLabel, getByA11yLabel } = render(withStore(<DeviceList />, configureStore()));
 
     // then: initially no devices are displayed
     expect(getByA11yLabel('BLE state')).toHaveTextContent('PoweredOn');
-    expect(getByA11yLabel('BLE device list')).toHaveTextContent('');
+    expect(queryAllByA11yLabel('BLE device')).toEqual([]);
   });
 
   it('should display list of BLE devices', async () => {
@@ -30,7 +30,7 @@ describe('DeviceList', () => {
     ]);
 
     // when: render the app
-    const { getByA11yLabel } = render(withStore(<DeviceList />, configureStore()));
+    const { getAllByA11yLabel } = render(withStore(<DeviceList />, configureStore()));
 
     // when: simulating some BLE traffic
     act(() => {
@@ -38,9 +38,10 @@ describe('DeviceList', () => {
     });
 
     // then: eventually the scanned devices are displayed
-    expect(getByA11yLabel('BLE device list')).toHaveTextContent(
-      'SomeDeviceName, SomeOtherName',
-    );
+    expect(getAllByA11yLabel('BLE device')).toEqual([
+      expect.toHaveTextContent('SomeDeviceName'),
+      expect.toHaveTextContent('SomeOtherName'),
+    ]);
   });
 
   it('should display list of BLE devices as they appear', async () => {
@@ -52,7 +53,7 @@ describe('DeviceList', () => {
     ]);
 
     // when: render the app
-    const { getByA11yLabel } = render(withStore(<DeviceList />, configureStore()));
+    const { getAllByA11yLabel } = render(withStore(<DeviceList />, configureStore()));
 
     // when: simulating some BLE traffic
     act(() => {
@@ -60,9 +61,9 @@ describe('DeviceList', () => {
     });
 
     // then: eventually the scanned devices are displayed
-    expect(getByA11yLabel('BLE device list')).toHaveTextContent(
-      'SomeDeviceName',
-    );
+    expect(getAllByA11yLabel('BLE device')).toEqual([
+      expect.toHaveTextContent('SomeDeviceName'),
+    ]);
 
     // when: simulating remaining BLE traffic
     act(() => {
@@ -70,8 +71,9 @@ describe('DeviceList', () => {
     });
 
     // then: eventually the scanned devices are displayed
-    expect(getByA11yLabel('BLE device list')).toHaveTextContent(
-      'SomeDeviceName, SomeOtherName',
-    );
+    expect(getAllByA11yLabel('BLE device')).toEqual([
+      expect.toHaveTextContent('SomeDeviceName'),
+      expect.toHaveTextContent('SomeOtherName'),
+    ]);
   });
 });

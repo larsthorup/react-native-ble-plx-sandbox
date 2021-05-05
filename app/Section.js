@@ -10,9 +10,9 @@ const Section = ({ children, title }): Node => {
   return (
     <View style={styles.sectionContainer}>
       <Text style={styles.sectionTitle}>{title}</Text>
-      <Text style={styles.sectionDescription} accessibilityLabel={title}>
+      <View style={styles.sectionDescription}>
         {children}
-      </Text>
+      </View>
     </View>
   );
 };
