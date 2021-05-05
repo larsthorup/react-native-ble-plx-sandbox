@@ -1,14 +1,15 @@
 import { applyMiddleware, compose, createStore } from 'redux';
 import thunkMiddleware from 'redux-thunk';
 
-import { deviceScanning } from './service';
+import { deviceScanning } from './service/deviceScanning';
 
 const trace = false;
 
 export const initialState = {
   ble: {
     powerState: null,
-    deviceSet: {},
+    deviceSet: {}, // TODO: reselect
+    device: {},
   },
 };
 
@@ -33,7 +34,7 @@ export const reducer = (state, action) => {
     return state;
   }
 
-  if (trace) {console.log('store', action);}
+  if (trace) { console.log('store', action); }
   return reducerForType(state, action);
 };
 
@@ -45,14 +46,18 @@ export const configureStore = () => {
 };
 
 export const bleDeviceScanned = register('bleDeviceScanned', (state, { device }) => {
-  if (!state.ble.deviceSet[device.name]) {
+  if (!state.ble.deviceSet[device.id]) {
     return {
       ...state,
       ble: {
         ...state.ble,
         deviceSet: {
           ...state.ble.deviceSet,
-          [device.name]: true,
+          [device.id]: true,
+        },
+        device: {
+          ...state.ble.device,
+          [device.id]: device,
         },
       },
     };

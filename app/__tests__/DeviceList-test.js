@@ -2,13 +2,13 @@ import 'react-native';
 import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
 
-import DeviceList from '../DeviceList';
-import { configureStore } from '../store';
-import { withStore } from '../withStore';
-import { autoMockBleManager } from '../ble';
+import DeviceList from '../view/DeviceList';
+import { configureStore } from '../state';
+import { withStore } from '../lib/withStore';
+import { autoMockBleManager } from '../lib/ble';
 import { act } from 'react-test-renderer';
 
-jest.mock('../ble');
+jest.mock('../lib/ble');
 
 describe('DeviceList', () => {
   it('should display empty list of BLE devices', async () => {
@@ -24,8 +24,8 @@ describe('DeviceList', () => {
 
   it('should display list of BLE devices', async () => {
     const bleManagerMock = autoMockBleManager([
-      { event: 'onDeviceScan', device: { name: 'SomeDeviceName' } },
-      { event: 'onDeviceScan', device: { name: 'SomeOtherName' } },
+      { event: 'onDeviceScan', device: { id: 'SND', name: 'SomeDeviceName' } },
+      { event: 'onDeviceScan', device: { id: 'SON', name: 'SomeOtherName' } },
       { label: 'scanned' },
     ]);
 
@@ -46,9 +46,9 @@ describe('DeviceList', () => {
 
   it('should display list of BLE devices as they appear', async () => {
     const bleManagerMock = autoMockBleManager([
-      { event: 'onDeviceScan', device: { name: 'SomeDeviceName' } },
+      { event: 'onDeviceScan', device: { id: 'SDN', name: 'SomeDeviceName' } },
       { label: 'some-scanned' },
-      { event: 'onDeviceScan', device: { name: 'SomeOtherName' } },
+      { event: 'onDeviceScan', device: { id: 'SON', name: 'SomeOtherName' } },
       { label: 'all-scanned' },
     ]);
 
@@ -79,8 +79,8 @@ describe('DeviceList', () => {
 
   it('should start and stop loading device info', async () => {
     const bleManagerMock = autoMockBleManager([
-      { event: 'onDeviceScan', device: { name: 'SomeDeviceName' } },
-      { event: 'onDeviceScan', device: { name: 'SomeOtherName' } },
+      { event: 'onDeviceScan', device: { id: 'SDN', name: 'SomeDeviceName' } },
+      { event: 'onDeviceScan', device: { id: 'SON', name: 'SomeOtherName' } },
       { label: 'scanned' },
     ]);
 

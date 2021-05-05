@@ -6,7 +6,7 @@ import {
   View,
 } from 'react-native';
 
-const Section = ({ children, title }): Node => {
+const Section = ({ children, title }) => {
   return (
     <View style={styles.sectionContainer}>
       <Text style={styles.sectionTitle}>{title}</Text>

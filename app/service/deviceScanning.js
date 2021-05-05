@@ -1,5 +1,5 @@
-import { blePowerStateChanged, bleDeviceScanned } from './store';
-import { getBleManager } from './ble';
+import { blePowerStateChanged, bleDeviceScanned } from '../state';
+import { getBleManager } from '../lib/ble';
 
 export const deviceScanning = async (dispatch, getState) => {
   const bleManager = getBleManager();
@@ -14,6 +14,7 @@ export const deviceScanning = async (dispatch, getState) => {
             console.error('bleManager.onDeviceScanError', error);
             return;
           }
+          // Note: for now, skip devices with no name in scan response
           if (device.name) {
             dispatch(bleDeviceScanned({ device }));
           }

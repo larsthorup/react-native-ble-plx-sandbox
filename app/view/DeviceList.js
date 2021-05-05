@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import type { Node } from 'react';
 
 import { useSelector } from 'react-redux';
 
@@ -15,8 +14,9 @@ import {
 } from 'react-native';
 import Section from './Section';
 
-const DeviceItem = ({ name }) => {
+const DeviceItem = ({ id }) => {
   const [selected, setSelected] = useState(false);
+  const { name } = useSelector((state) => state.ble.device[id]);
   const toggleSelected = () => {
     setSelected(!selected);
   };
@@ -51,10 +51,10 @@ const DeviceItem = ({ name }) => {
   );
 };
 
-const DeviceList: () => Node = () => {
+const DeviceList = () => {
   const powerState = useSelector((state) => state.ble.powerState);
   const deviceSet = useSelector((state) => state.ble.deviceSet);
-  const deviceNameList = Object.keys(deviceSet).sort();
+  const deviceIdList = Object.keys(deviceSet).sort();
   return (
     <SafeAreaView>
       <StatusBar />
@@ -67,8 +67,8 @@ const DeviceList: () => Node = () => {
       <Section title="BLE device list" />
       <FlatList
         accessibilityLabel="BLE device list"
-        data={deviceNameList}
-        renderItem={({ item }) => (<DeviceItem name={item} />)}
+        data={deviceIdList}
+        renderItem={({ item }) => (<DeviceItem id={item} />)}
         keyExtractor={(item) => item}
       />
     </SafeAreaView>
