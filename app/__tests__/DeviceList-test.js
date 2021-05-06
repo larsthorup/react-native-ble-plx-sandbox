@@ -82,6 +82,29 @@ describe('DeviceList', () => {
       { event: 'onDeviceScan', device: { id: 'SDN', name: 'SomeDeviceName' } },
       { event: 'onDeviceScan', device: { id: 'SON', name: 'SomeOtherName' } },
       { label: 'scanned' },
+      {
+        command: 'connectToDevice',
+        request: {
+          id: 'SDN',
+        },
+      },
+      {
+        command: 'discoverAllServicesAndCharacteristicsForDevice',
+        request: {
+          id: 'SDN',
+        },
+      },
+      {
+        command: 'readCharacteristicForDevice',
+        request: {
+          id: 'SDN',
+          serviceUuid: '0000180F-0000-1000-8000-00805f9b34fb',
+          characteristicUuid: '00002a19-0000-1000-8000-00805f9b34fb',
+        },
+        response: {
+          value: 'RQ==',
+        },
+      },
     ]);
 
     // when: render the app
