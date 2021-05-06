@@ -46,18 +46,21 @@ export const configureStore = () => {
 };
 
 export const bleDeviceScanned = register('bleDeviceScanned', (state, { device }) => {
-  if (!state.ble.deviceSet[device.id]) {
+  const { id } = device;
+  if (!state.ble.deviceSet[id]) {
     return {
       ...state,
       ble: {
         ...state.ble,
         deviceSet: {
           ...state.ble.deviceSet,
-          [device.id]: true,
+          [id]: true,
         },
         device: {
           ...state.ble.device,
-          [device.id]: device,
+          [id]: {
+            device,
+          },
         },
       },
     };
@@ -73,6 +76,46 @@ export const blePowerStateChanged = register('blePowerStateChanged', (state, { p
       ble: {
         ...state.ble,
         powerState,
+      },
+    };
+  } else {
+    return state;
+  }
+});
+
+export const bleDeviceConnecting = register('bleDeviceConnecting', (state, { id, connecting }) => {
+  if (state.ble.device[id].connecting !== connecting) {
+    return {
+      ...state,
+      ble: {
+        ...state.ble,
+        device: {
+          ...state.ble.device,
+          [id]: {
+            ...state.ble.device[id],
+            connecting,
+          },
+        },
+      },
+    };
+  } else {
+    return state;
+  }
+});
+
+export const bleDeviceBatteryLevel = register('bleDeviceBatteryLevel', (state, { id, batteryLevel }) => {
+  if (state.ble.device[id].batteryLevel !== batteryLevel) {
+    return {
+      ...state,
+      ble: {
+        ...state.ble,
+        device: {
+          ...state.ble.device,
+          [id]: {
+            ...state.ble.device[id],
+            batteryLevel,
+          },
+        },
       },
     };
   } else {

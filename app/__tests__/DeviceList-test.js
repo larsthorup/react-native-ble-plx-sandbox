@@ -1,6 +1,6 @@
 import 'react-native';
 import React from 'react';
-import { fireEvent, render } from '@testing-library/react-native';
+import { fireEvent, render, waitFor } from '@testing-library/react-native';
 
 import DeviceList from '../view/DeviceList';
 import { configureStore } from '../state';
@@ -77,7 +77,7 @@ describe('DeviceList', () => {
     ]);
   });
 
-  it('should start and stop loading device info', async () => {
+  it('should load and show device info', async () => {
     const bleManagerMock = autoMockBleManager([
       { event: 'onDeviceScan', device: { id: 'SDN', name: 'SomeDeviceName' } },
       { event: 'onDeviceScan', device: { id: 'SON', name: 'SomeOtherName' } },
@@ -101,8 +101,9 @@ describe('DeviceList', () => {
     // then: loading indicator is shown
     expect(queryByA11yLabel('Connecting to "SomeDeviceName"')).toBeTruthy();
 
-    // when: clicking the device again
-    fireEvent.press(getByA11yLabel('Disconnect from "SomeDeviceName"'));
+    // then: eventually battery level is shown
+    await waitFor(() => getByA11yLabel('"SomeDeviceName" battery level'));
+    expect(getByA11yLabel('"SomeDeviceName" battery level')).toHaveTextContent('69');
 
     // then: loading indicator is no longer shown
     expect(queryByA11yLabel('Connecting to "SomeDeviceName"')).toBeFalsy();

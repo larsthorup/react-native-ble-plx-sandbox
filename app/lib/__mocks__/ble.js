@@ -15,6 +15,21 @@ class BleManagerMock {
 
   stopDeviceScan() { }
 
+  async connectToDevice(id) {
+    // TODO
+  }
+
+  async discoverAllServicesAndCharacteristicsForDevice(id) {
+    // TODO
+  }
+
+  async readCharacteristicForDevice(id, serviceUuid, characteristicUuid) {
+    // TODO
+    return {
+      value: 'RQ==',
+    };
+  }
+
   playNext() {
     const message = this.messageList[this.nextMessageIndex];
     const { event, label } = message;

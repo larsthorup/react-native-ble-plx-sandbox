@@ -13,12 +13,22 @@ import {
   View,
 } from 'react-native';
 import Section from './Section';
+import { useDispatch } from 'react-redux';
+import { deviceConnecting } from '../service/deviceConnecting';
 
 const DeviceItem = ({ id }) => {
+  const dispatch = useDispatch();
   const [selected, setSelected] = useState(false);
-  const { name } = useSelector((state) => state.ble.device[id]);
+  const { name } = useSelector((state) => state.ble.device[id].device);
+  const connecting = useSelector((state) => state.ble.device[id].connecting);
+  const batteryLevel = useSelector((state) => state.ble.device[id].batteryLevel);
   const toggleSelected = () => {
-    setSelected(!selected);
+    if (!selected) {
+      dispatch(deviceConnecting({ id }));
+      setSelected(true);
+    } else {
+      setSelected(false);
+    }
   };
   const style = {
     ...styles.deviceItem,
@@ -40,12 +50,20 @@ const DeviceItem = ({ id }) => {
           {name}
         </Text>
       </View>
-      {selected && (
+      {selected && connecting && (
         <ActivityIndicator
           accessibilityLabel={`Connecting to "${name}"`}
           color={styles.deviceItemLoading.color}
           size="small"
         />
+      )}
+      {selected && batteryLevel && (
+        <Text
+          accessibilityLabel={`"${name}" battery level`}
+          style={styles.deviceProp}
+        >
+          {batteryLevel}
+        </Text>
       )}
     </Pressable>
   );
@@ -90,6 +108,10 @@ const styles = StyleSheet.create({
   },
   deviceName: {
     color: 'lightyellow',
+  },
+  deviceProp: {
+    color: 'lightgreen',
+    padding: 20,
   },
   deviceState: {
     color: 'white',
