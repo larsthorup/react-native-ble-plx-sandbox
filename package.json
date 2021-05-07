@@ -2,6 +2,8 @@
   "name": "react-native-ble-plx-sandbox",
   "scripts": {
     "android": "cd app && npm run android",
+    "ci": "npm run ci:capture && npm run test:app",
+    "ci:capture": "cd capture && npm run eslint",
     "install": "npm run install:capture && npm run install:app",
     "install:app": "cd app && npm install",
     "install:capture": "cd capture && npm install",

@@ -4,13 +4,19 @@
   "private": true,
   "scripts": {
     "android": "react-native run-android",
+    "android:assemble": "cd android && bash ./gradlew assembleDebug --console=plain",
+    "android:build": "bash -c \"mkdir -p android/app/src/main/assets\" && npm run android:bundle && npm run android:assemble",
+    "android:bundle": "react-native bundle --platform android --dev false --entry-file index.js --bundle-output android/app/src/main/assets/index.android.bundle --assets-dest android/app/src/main/res/",
+    "android:install": "adb install -r android/app/build/outputs/apk/debug/app-debug.apk",
+    "android:launch": "adb shell am start -n 'com.xpqf.rnblesandboxcapture/.MainActivity'",
     "android:log:clear": "adb logcat -c",
     "android:log": "adb logcat -d -v raw -s ReactNativeJS:V",
     "android:stop": "adb shell pm clear com.xpqf.rnblesandboxcapture",
     "eslint": "eslint . --fix --max-warnings 0 --ignore-path .gitignore",
     "ios": "react-native run-ios",
     "start": "react-native start",
-    "test": "npm run eslint"
+    "test": "npm run eslint && npm run test:capture",
+    "test:capture": "npm run android:build && npm run android:install && npm run android:log:clear && npm run android:launch && sleep 5 && npm run android:log && npm run android:stop"
   },
   "dependencies": {
     "react": "17.0.1",
