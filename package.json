@@ -2,9 +2,13 @@
   "name": "react-native-ble-plx-sandbox",
   "scripts": {
     "android": "cd app && npm run android",
-    "install": "cd app && npm install",
+    "install": "npm run install:capture && npm run install:app",
+    "install:app": "cd app && npm install",
+    "install:capture": "cd capture && npm install",
     "start": "cd app && npm start",
-    "test": "cd app && npm test"
+    "test": "npm run test:capture && npm run test:app",
+    "test:app": "cd app && npm test",
+    "test:capture": "cd capture && npm test"
   },
   "repository": {
     "type": "git",

@@ -30,5 +30,5 @@ npm run android
 TBD
 
 ```
-npm run log:android
+npm run android:log
 ```

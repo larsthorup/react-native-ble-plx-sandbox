@@ -1,5 +1,5 @@
 {
-  "name": "react-native-ble-plx-sandbox",
+  "name": "react-native-ble-plx-sandbox-app",
   "version": "0.0.1",
   "private": true,
   "scripts": {
@@ -7,7 +7,7 @@
     "eslint": "eslint . --fix --max-warnings 0 --ignore-path .gitignore",
     "ios": "react-native run-ios",
     "jest": "jest",
-    "log:android": "adb logcat *:S ReactNative:V ReactNativeJS:V",
+    "android:log": "adb logcat *:S ReactNative:V ReactNativeJS:V",
     "start": "react-native start",
     "test": "npm run eslint && npm run jest"
   },
