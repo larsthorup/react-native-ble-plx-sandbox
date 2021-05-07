@@ -1,3 +1,5 @@
+import {PermissionsAndroid} from 'react-native';
+
 const testList = [];
 
 export const it = (name, fn) => {
@@ -14,12 +16,25 @@ export const assert = {
 
 export const run = async reporter => {
   reporter.onStart();
-  for (const {name, fn} of testList) {
-    try {
-      await fn();
-      reporter.onPass(name);
-    } catch (ex) {
-      reporter.onFail(name, ex);
+  // TODO: move somewhere else
+  const permissionResult = await PermissionsAndroid.request(
+    PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+  );
+  if (permissionResult === PermissionsAndroid.RESULTS.GRANTED) {
+    for (const {name, fn} of testList) {
+      let error;
+      const then = Date.now();
+      try {
+        await fn();
+      } catch (err) {
+        error = err;
+      }
+      const duration = Date.now() - then;
+      if (error) {
+        reporter.onFail({duration, error, name});
+      } else {
+        reporter.onPass({duration, name});
+      }
     }
   }
   reporter.onComplete();

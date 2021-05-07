@@ -2,7 +2,7 @@ import React, {useEffect, useState} from 'react';
 import {SafeAreaView, StatusBar, StyleSheet, Text} from 'react-native';
 import {run} from '../lib/testRunner';
 
-const TestRunner = () => {
+const TestRunnerScreen = () => {
   const [isRunning, setIsRunning] = useState(false);
   const [progress, setProgress] = useState([]);
   useEffect(() => {
@@ -14,11 +14,11 @@ const TestRunner = () => {
       onComplete: () => {
         log({event: 'complete'});
       },
-      onFail: (name, error) => {
-        log({event: 'fail', name, message: error.message});
+      onFail: ({duration, error, name}) => {
+        log({duration, event: 'fail', name, message: error.message});
       },
-      onPass: name => {
-        log({event: 'pass', name});
+      onPass: ({duration, name}) => {
+        log({duration, event: 'pass', name});
       },
       onStart: () => {
         log({event: 'start'});
@@ -33,14 +33,16 @@ const TestRunner = () => {
     <SafeAreaView>
       <StatusBar />
       <Text style={styles.heading}>Test Runner</Text>
-      {progress.map(({event, name, message}) => {
+      {progress.map(({duration, event, name, message}, eventNumber) => {
         const text = ['complete', 'start'].includes(event)
           ? event
           : event === 'fail'
-          ? `X ${name}: ${message}`
-          : `√ ${name}`;
+          ? `X ${name}: ${message} (${duration} ms)`
+          : `√ ${name} (${duration} ms)`;
         return (
-          <Text style={{...styles.progress, ...styles[`progress.${event}`]}}>
+          <Text
+            style={{...styles.progress, ...styles[`progress.${event}`]}}
+            key={eventNumber}>
             <>{text}</>
           </Text>
         );
@@ -73,4 +75,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default TestRunner;
+export default TestRunnerScreen;
