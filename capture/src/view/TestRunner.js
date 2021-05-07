@@ -7,12 +7,7 @@ const TestRunner = () => {
   const [progress, setProgress] = useState([]);
   useEffect(() => {
     const log = runnerEvent => {
-      const {event, message, name} = runnerEvent;
-      console.log('TestRunner', {
-        event,
-        ...(message && {message}),
-        ...(name && {name}),
-      });
+      console.log(`TestRunner: ${JSON.stringify(runnerEvent)}`);
       setProgress(prev => prev.concat([runnerEvent]));
     };
     const reporter = {
