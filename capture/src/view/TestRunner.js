@@ -2,19 +2,18 @@ import React, {useEffect, useState} from 'react';
 import {SafeAreaView, StatusBar, StyleSheet, Text} from 'react-native';
 import {run} from '../lib/testRunner';
 
-const CaptureTestRunner = () => {
+const TestRunner = () => {
   const [isRunning, setIsRunning] = useState(false);
   const [progress, setProgress] = useState([]);
   useEffect(() => {
-    const log = ({event, message, name}) => {
-      console.log('CaptureTestRunner', {
+    const log = runnerEvent => {
+      const {event, message, name} = runnerEvent;
+      console.log('TestRunner', {
         event,
         ...(message && {message}),
         ...(name && {name}),
       });
-      setProgress(prev =>
-        prev.concat([`${event} ${name || ''} ${message || ''}`]),
-      );
+      setProgress(prev => prev.concat([runnerEvent]));
     };
     const reporter = {
       onComplete: () => {
@@ -38,21 +37,45 @@ const CaptureTestRunner = () => {
   return (
     <SafeAreaView>
       <StatusBar />
-      <Text style={styles.heading}>Capture Test Runner</Text>
-      <Text style={styles.progress}>{progress.join('\n')}</Text>
+      <Text style={styles.heading}>Test Runner</Text>
+      {progress.map(({event, name, message}) => {
+        const text = ['complete', 'start'].includes(event)
+          ? event
+          : event === 'fail'
+          ? `X ${name}: ${message}`
+          : `√ ${name}`;
+        return (
+          <Text style={{...styles.progress, ...styles[`progress.${event}`]}}>
+            <>{text}</>
+          </Text>
+        );
+      })}
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   heading: {
-    color: 'lightgreen',
+    color: 'lightgrey',
     padding: 20,
+    fontSize: 24,
+    fontWeight: '600',
   },
   progress: {
-    color: 'grey',
     padding: 3,
+  },
+  'progress.complete': {
+    color: 'grey',
+  },
+  'progress.fail': {
+    color: 'red',
+  },
+  'progress.pass': {
+    color: 'green',
+  },
+  'progress.start': {
+    color: 'grey',
   },
 });
 
-export default CaptureTestRunner;
+export default TestRunner;
