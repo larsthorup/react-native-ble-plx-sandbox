@@ -5,34 +5,44 @@ class BleManagerMock {
     this.nextMessageIndex = 0;
   }
 
+  popMessage(reason) {
+    const message = this.messageList[this.nextMessageIndex];
+    ++this.nextMessageIndex;
+    // console.log(`popping: ${JSON.stringify(message)}`);
+    return message;
+  }
+
   onStateChange(listener, emitCurrentState) {
     // TODO: error if listener alreay exists
-    this.expectNext({ command: 'onStateChange', request: { emitCurrentState } });
+    this.expectCommand({ command: 'onStateChange', request: { emitCurrentState } });
     this.stateChangeListener = listener;
   }
 
   startDeviceScan(uuidList, scanOptions, onDeviceScan) {
     // TODO: error if listener alreay exists
+    this.expectCommand({ command: 'startDeviceScan', request: { uuidList, scanOptions } });
     this.onDeviceScan = onDeviceScan;
   }
 
   stopDeviceScan() { }
 
   async connectToDevice(id) {
-    this.expectNext({ command: 'connectToDevice', request: { id } });
+    this.expectCommand({ command: 'connectToDevice', request: { id } });
   }
 
   async discoverAllServicesAndCharacteristicsForDevice(id) {
-    this.expectNext({ command: 'discoverAllServicesAndCharacteristicsForDevice', request: { id } });
+    this.expectCommand({ command: 'discoverAllServicesAndCharacteristicsForDevice', request: { id } });
   }
 
   async readCharacteristicForDevice(id, serviceUuid, characteristicUuid) {
-    const response = this.expectNext({ command: 'readCharacteristicForDevice', request: { id, serviceUuid, characteristicUuid } });
+    const response = this.expectCommand({ command: 'readCharacteristicForDevice', request: { id, serviceUuid, characteristicUuid } });
     return response;
   }
 
-  async expectNext({ command, request }) {
-    const message = this.messageList[this.nextMessageIndex];
+  async expectCommand({ command, request }) {
+    this.playUntilCommand(); // Note: flush any additionally recorded events
+    const message = this.popMessage();
+    const { response } = message;
     if (message.command !== command) {
       console.error(`BleManagerMock: expected command "${command}" but found ${JSON.stringify(message)}`);
     }
@@ -40,20 +50,18 @@ class BleManagerMock {
     if (JSON.stringify(message.request) !== JSON.stringify(request)) {
       console.error(`BleManagerMock: expected command "${command}" to have request "${JSON.stringify(request)}" but found "${JSON.stringify(message)}"`);
     }
-    const { response } = message;
-    ++this.nextMessageIndex;
     // console.log(`BleManagerMock: ${command} returning ${JSON.stringify(response)}`);
     return response;
   }
 
   playNext() {
-    const message = this.messageList[this.nextMessageIndex];
+    const message = this.popMessage();
     const { command, event, label } = message;
     if (label) {
       console.log(`(BleManagerMock: unused label: "${label}")`);
-    } else if (event) {
-      switch (event) {
-        case 'onDeviceScan':
+    } else if (event) { // TODO: type === 'event'
+      switch (event) { // TODO: name
+        case 'onDeviceScan': // TODO: 'deviceScan'
           const { onDeviceScan } = this; // TODO: deviceScanListener
           if (onDeviceScan) {
             const error = null;
@@ -75,22 +83,45 @@ class BleManagerMock {
         default:
           throw new Error(`BleManagerMock: Unrecognized event "${event}" in message ${JSON.stringify(message)}`);
       }
-    } else if (command) {
-      // TODO: implement command support
+    } else if (command) { // TODO: type === 'command'
+      throw new Error(`BleManagerMock: command "${command}" expected but has not yet been called: ${JSON.stringify(message)}`);
     }
-    ++this.nextMessageIndex;
+  }
+
+  playUntilCommand() {
+    try {
+      const fromMessageIndex = this.nextMessageIndex;
+      while (true) {
+        if (this.nextMessageIndex >= this.messageList.length) {
+          throw new Error(`BleManagerMock: command not found in recording since index ${fromMessageIndex}`);
+        }
+        if (this.messageList[this.nextMessageIndex].command) {
+          break;
+        }
+        this.playNext();
+      }
+    } catch (err) {
+      console.error(err);
+      throw new Error(`BleManagerMock: failed to playUntilCommand(): ${err.message}`);
+    }
   }
 
   playUntil(label) {
-    while (true) {
-      if (this.nextMessageIndex > this.messageList.length) {
-        throw new Error(`BleManagerMock: label "${label}" not found in recording`);
+    try {
+      const fromMessageIndex = this.nextMessageIndex;
+      while (true) {
+        if (this.nextMessageIndex >= this.messageList.length) {
+          throw new Error(`BleManagerMock: label "${label}" not found in recording since index ${fromMessageIndex}`);
+        }
+        if (this.messageList[this.nextMessageIndex].label === label) {
+          this.popMessage();
+          break;
+        }
+        this.playNext();
       }
-      if (this.messageList[this.nextMessageIndex].label === label) {
-        ++this.nextMessageIndex;
-        break;
-      }
-      this.playNext();
+    } catch (err) {
+      console.error(err);
+      throw new Error(`BleManagerMock: failed to playUntil('${label}'): ${err.message}`);
     }
   }
 

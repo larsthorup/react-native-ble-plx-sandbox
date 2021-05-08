@@ -10,6 +10,13 @@
     "powerState": "PoweredOn"
   },
   {
+    "command": "startDeviceScan",
+    "request": {
+      "uuidList": null,
+      "scanOptions": null
+    }
+  },
+  {
     "event": "onDeviceScan",
     "device": {
       "id": "12-34-56-78-9A-BC",
@@ -17,10 +24,21 @@
     }
   },
   {
-    "command": "stopDeviceScan"
+    "label": "scanned"
   },
   {
-    "label": "scanned"
+    "event": "onDeviceScan",
+    "device": {
+      "id": "12-34-56-78-9A-BC",
+      "name": "The Speaker"
+    }
+  },
+  {
+    "event": "onDeviceScan",
+    "device": {
+      "id": "12-34-56-78-9A-BC",
+      "name": "The Speaker"
+    }
   },
   {
     "command": "connectToDevice",

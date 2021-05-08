@@ -18,16 +18,19 @@ class BleManagerCapture {
   record(item) {
     console.log(`BleCapture: ${JSON.stringify(item)}`);
   }
+  exclude(item) {
+    console.log(`(excluding ${JSON.stringify(item)})`);
+  }
   label(label) {
     this.record({ label });
   }
   onStateChange(listener, emitCurrentState) {
     this.bleManager.onStateChange((powerState) => {
-      listener(powerState);
       this.record({
         event: 'onStateChange', // TODO: stateChange
         powerState,
       });
+      listener(powerState);
     }, emitCurrentState);
     this.record({
       command: 'onStateChange', // TODO: type: 'event', name: 'stateChange', args
@@ -39,23 +42,34 @@ class BleManagerCapture {
   startDeviceScan(uuidList, scanOptions, listener) {
     this.bleManager.startDeviceScan(uuidList, scanOptions, (error, device) => {
       if (error) {
-        const { message } = error;
         this.record({
-          event: 'onDeviceScanError',
+          event: 'onDeviceScan',
           error: { message },
         });
         listener(error, device);
+        const { message } = error;
       } else if (this.deviceCriteria(device)) {
         const { id, name } = this.recordDevice; // TODO: replace volatile data before capture
-        // const { id, name } = device;
         this.record({
           event: 'onDeviceScan',
           device: { id, name },
         });
         listener(error, device);
       } else {
-        // Note: filtered out
+        // Note: hide unwanted scan responses for now as they are usually quite noisy
+        // const { id, name } = device;
+        // this.exclude({
+        //   event: 'onDeviceScan',
+        //   device: { id, name },
+        // });
       }
+    });
+    this.record({
+      command: 'startDeviceScan', // TODO: type: 'command', name: 'startDeviceScan'
+      request: {
+        uuidList,
+        scanOptions,
+      },
     });
   }
   stopDeviceScan() {
@@ -128,7 +142,6 @@ it('should receive scan result', async () => {
       }
     }, true);
   });
-  bleManagerCapture.stopDeviceScan();
   bleManagerCapture.label('scanned');
 });
 
@@ -139,6 +152,7 @@ it('should read battery level', async () => {
   bleManagerCapture.recordValue = base64FromUint8(42); // TODO: inject value to record, how?
   const { value } = await bleManagerCapture.readCharacteristicForDevice(id, batteryServiceUuid, batteryLevelCharacteristicUuid);
   const batteryLevel = uint8FromBase64(value);
+  console.log(`(actual batteryLevel = ${batteryLevel})`);
   assert.ok(batteryLevel >= 0, `Expected ${batteryLevel} >= 0`);
   assert.ok(batteryLevel <= 100, `Expected ${batteryLevel} <= 100`);
 });

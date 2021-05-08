@@ -24,6 +24,13 @@ describe('DeviceList', () => {
         'event': 'onStateChange',
         'powerState': 'PoweredOn',
       },
+      {
+        'command': 'startDeviceScan',
+        'request': {
+          'uuidList': null,
+          'scanOptions': null,
+        },
+      },
       { label: 'powered' },
     ]);
 
@@ -51,6 +58,13 @@ describe('DeviceList', () => {
       {
         'event': 'onStateChange',
         'powerState': 'PoweredOn',
+      },
+      {
+        'command': 'startDeviceScan',
+        'request': {
+          'uuidList': null,
+          'scanOptions': null,
+        },
       },
       { event: 'onDeviceScan', device: { id: 'SND', name: 'SomeDeviceName' } },
       { event: 'onDeviceScan', device: { id: 'SON', name: 'SomeOtherName' } },
@@ -83,6 +97,13 @@ describe('DeviceList', () => {
       {
         'event': 'onStateChange',
         'powerState': 'PoweredOn',
+      },
+      {
+        'command': 'startDeviceScan',
+        'request': {
+          'uuidList': null,
+          'scanOptions': null,
+        },
       },
       { event: 'onDeviceScan', device: { id: 'SDN', name: 'SomeDeviceName' } },
       { label: 'some-scanned' },
@@ -125,7 +146,7 @@ describe('DeviceList', () => {
     // then: no loading indicator is shown
     expect(queryByA11yLabel('Connecting to "The Speaker"')).toBeFalsy();
 
-    // when: simulating some BLE traffic
+    // when: simulating BLE scan response
     act(() => {
       bleManagerMock.playUntil('scanned'); // Note: causes re-render, so act() is needed
     });
