@@ -6,6 +6,10 @@
     }
   },
   {
+    "event": "onStateChange",
+    "powerState": "PoweredOn"
+  },
+  {
     "event": "onDeviceScan",
     "device": {
       "id": "12-34-56-78-9A-BC",

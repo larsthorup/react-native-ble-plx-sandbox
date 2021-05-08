@@ -9,6 +9,8 @@ const batteryLevelCharacteristicUuid = '00002a19-0000-1000-8000-00805f9b34fb';
 // TODO: lib/base64
 const uint8FromBase64 = (data) => Buffer.from(data, 'base64')[0];
 const base64FromUint8 = (value) => Buffer.from([value]).toString('base64');
+
+// TODO: lib/bleAutoMock.js
 class BleManagerCapture {
   constructor(bm) {
     this.bleManager = bm;
@@ -19,10 +21,16 @@ class BleManagerCapture {
   label(label) {
     this.record({ label });
   }
-  onStateChange(fn, emitCurrentState) {
-    this.bleManager.onStateChange(fn, emitCurrentState);
+  onStateChange(listener, emitCurrentState) {
+    this.bleManager.onStateChange((powerState) => {
+      listener(powerState);
+      this.record({
+        event: 'onStateChange', // TODO: stateChange
+        powerState,
+      });
+    }, emitCurrentState);
     this.record({
-      command: 'onStateChange',
+      command: 'onStateChange', // TODO: type: 'event', name: 'stateChange', args
       request: {
         emitCurrentState,
       },
@@ -53,7 +61,7 @@ class BleManagerCapture {
   stopDeviceScan() {
     this.bleManager.stopDeviceScan();
     this.record({
-      command: 'stopDeviceScan',
+      command: 'stopDeviceScan', // TODO: type: 'command', name: 'stopDeviceScan'
     });
   }
   async connectToDevice(deviceId) {
@@ -108,7 +116,7 @@ let device;
 it('should receive scan result', async () => {
   // TODO: device = await expectDeviceScanResult({criteria: deviceNameEquals(expectedDeviceName)})
   device = await new Promise(resolve => {
-    bleManagerCapture.onStateChange(powerState => {
+    bleManagerCapture.onStateChange((powerState) => {
       if (powerState === 'PoweredOn') {
         const uuidList = null;
         const scanOptions = null;

@@ -5,11 +5,14 @@ class BleManagerMock {
     this.nextMessageIndex = 0;
   }
 
-  onStateChange(onStateChange) {
-    onStateChange('PoweredOn');
+  onStateChange(listener, emitCurrentState) {
+    // TODO: error if listener alreay exists
+    this.expectNext({ command: 'onStateChange', request: { emitCurrentState } });
+    this.stateChangeListener = listener;
   }
 
   startDeviceScan(uuidList, scanOptions, onDeviceScan) {
+    // TODO: error if listener alreay exists
     this.onDeviceScan = onDeviceScan;
   }
 
@@ -51,13 +54,22 @@ class BleManagerMock {
     } else if (event) {
       switch (event) {
         case 'onDeviceScan':
-          const { onDeviceScan } = this;
+          const { onDeviceScan } = this; // TODO: deviceScanListener
           if (onDeviceScan) {
             const error = null;
             const { device } = message;
             onDeviceScan(error, device);
           } else {
             console.warn(`BleManagerMock: message cannot be delivered, as bleManager.startDeviceScan has not yet been called: ${JSON.stringify(message)}`);
+          }
+          break;
+        case 'onStateChange':
+          const { stateChangeListener } = this;
+          if (stateChangeListener) {
+            const { powerState } = message;
+            stateChangeListener(powerState);
+          } else {
+            console.warn(`BleManagerMock: message cannot be delivered, as bleManager.onStateChange has not yet been called: ${JSON.stringify(message)}`);
           }
           break;
         default:
