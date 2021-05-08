@@ -62,7 +62,7 @@ const DeviceItem = ({ id }) => {
           accessibilityLabel={`"${name}" battery level`}
           style={styles.deviceProp}
         >
-          {batteryLevel}
+          {`${batteryLevel}%`}
         </Text>
       )}
     </Pressable>

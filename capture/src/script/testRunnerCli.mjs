@@ -1,4 +1,5 @@
 import * as cp from 'child_process';
+import * as fs from 'fs';
 import readline from 'readline';
 import { promisify } from 'util';
 
@@ -58,10 +59,10 @@ await new Promise((resolve) => {
     }
   });
 });
-console.log('----------------');
-console.log('BLE capture file');
-console.log(JSON.stringify(bleMessageList, null, 2));
-// TODO: save to file
+const captureName = 'deviceList'; // TODO: configure per capture test suite
+const capturePath = `artifact/${captureName}.capture.json`;
+fs.writeFileSync(capturePath, JSON.stringify(bleMessageList, null, 2));
+console.log(`BLE capture file saved in ${capturePath}`);
 
 // stop adb logcat
 logcat.kill();

@@ -19,6 +19,7 @@
     "test": "npm run eslint && npm run android:build && npm run android:stop && npm run android:install && npm run capture"
   },
   "dependencies": {
+    "buffer": "^6.0.3",
     "chalk": "^2.4.2",
     "react": "17.0.1",
     "react-native": "0.64.1",

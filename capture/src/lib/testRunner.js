@@ -1,12 +1,17 @@
-import {PermissionsAndroid} from 'react-native';
+import { PermissionsAndroid } from 'react-native';
 
 const testList = [];
 
 export const it = (name, fn) => {
-  testList.push({name, fn});
+  testList.push({ name, fn });
 };
 
 export const assert = {
+  ok: (actual, message) => {
+    if (!actual) {
+      throw new Error(message);
+    }
+  },
   strictEqual: (actual, expected) => {
     if (actual !== expected) {
       throw new Error(`Expected ${actual} to equal ${expected}`);
@@ -21,7 +26,7 @@ export const run = async reporter => {
     PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
   );
   if (permissionResult === PermissionsAndroid.RESULTS.GRANTED) {
-    for (const {name, fn} of testList) {
+    for (const { name, fn } of testList) {
       let error;
       const then = Date.now();
       try {
@@ -31,9 +36,9 @@ export const run = async reporter => {
       }
       const duration = Date.now() - then;
       if (error) {
-        reporter.onFail({duration, error, name});
+        reporter.onFail({ duration, error, name });
       } else {
-        reporter.onPass({duration, name});
+        reporter.onPass({ duration, name });
       }
     }
   }

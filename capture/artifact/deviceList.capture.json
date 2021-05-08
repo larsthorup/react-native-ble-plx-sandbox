@@ -1,0 +1,44 @@
+[
+  {
+    "command": "onStateChange",
+    "request": {
+      "emitCurrentState": true
+    }
+  },
+  {
+    "event": "onDeviceScan",
+    "device": {
+      "id": "12-34-56-78-9A-BC",
+      "name": "The Speaker"
+    }
+  },
+  {
+    "command": "stopDeviceScan"
+  },
+  {
+    "label": "scanned"
+  },
+  {
+    "command": "connectToDevice",
+    "request": {
+      "id": "12-34-56-78-9A-BC"
+    }
+  },
+  {
+    "command": "discoverAllServicesAndCharacteristicsForDevice",
+    "request": {
+      "id": "12-34-56-78-9A-BC"
+    }
+  },
+  {
+    "command": "readCharacteristicForDevice",
+    "request": {
+      "id": "12-34-56-78-9A-BC",
+      "serviceUuid": "0000180F-0000-1000-8000-00805f9b34fb",
+      "characteristicUuid": "00002a19-0000-1000-8000-00805f9b34fb"
+    },
+    "response": {
+      "value": "Kg=="
+    }
+  }
+]

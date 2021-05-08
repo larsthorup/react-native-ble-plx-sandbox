@@ -45,10 +45,10 @@ class BleManagerMock {
 
   playNext() {
     const message = this.messageList[this.nextMessageIndex];
-    const { event, label } = message;
+    const { command, event, label } = message;
     if (label) {
       console.log(`(BleManagerMock: unused label: "${label}")`);
-    } else {
+    } else if (event) {
       switch (event) {
         case 'onDeviceScan':
           const { onDeviceScan } = this;
@@ -63,6 +63,8 @@ class BleManagerMock {
         default:
           throw new Error(`BleManagerMock: Unrecognized event "${event}" in message ${JSON.stringify(message)}`);
       }
+    } else if (command) {
+      // TODO: implement command support
     }
     ++this.nextMessageIndex;
   }
@@ -82,7 +84,7 @@ class BleManagerMock {
 
 }
 
-let bleManagerMock;
+let bleManagerMock; // TODO: avoid global to support parallel jest tests
 
 export const autoMockBleManager = (messageList) => {
   bleManagerMock = new BleManagerMock(messageList);
