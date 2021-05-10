@@ -135,7 +135,8 @@ class BleManagerMock {
 
 let bleManagerMock; // TODO: avoid global to support parallel jest tests
 
-export const autoMockBleManager = (messageList) => {
+export const autoMockBleManager = (spec) => {
+  const messageList = JSON.parse(JSON.stringify(spec)); // TODO: generate recording from spec
   bleManagerMock = new BleManagerMock(messageList);
   return bleManagerMock;
 };

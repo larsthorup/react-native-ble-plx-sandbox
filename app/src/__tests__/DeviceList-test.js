@@ -155,8 +155,8 @@ describe('DeviceList', () => {
   });
 
   it('should load and show device info', async () => {
-    const recording = JSON.parse(fs.readFileSync('../capture/artifact/deviceList.capture.json')); // TODO: relative path
-    const bleManagerMock = autoMockBleManager(recording);
+    const spec = JSON.parse(fs.readFileSync('../capture/artifact/deviceList.spec.json')); // TODO: relative path
+    const bleManagerMock = autoMockBleManager(spec);
 
     // when: render the app
     const { getByA11yLabel, queryByA11yLabel } = render(withStore(<DeviceList />, configureStore()));
