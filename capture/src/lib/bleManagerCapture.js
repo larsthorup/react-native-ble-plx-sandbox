@@ -55,7 +55,7 @@ export class BleManagerCapture {
         listener(error, device);
       } else {
         if (this.reported.indexOf(device.id) < 0) {
-          console.log(`device with id ${device.id} named ${device.name} is not what we are looking for. ManufacturerData: ${device.manufacturerData}`);
+          console.log(`device with id ${device.id} named ${device.name} not on our list. ManufacturerData: ${device.manufacturerData}`);
           this.reported.push(device.id);
           // comment out the three next lines if they are too noisy
           // const devReport = {...device};
