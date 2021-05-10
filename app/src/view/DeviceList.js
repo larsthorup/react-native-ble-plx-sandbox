@@ -15,6 +15,7 @@ import {
 import Section from './Section';
 import { useDispatch } from 'react-redux';
 import { deviceConnecting } from '../service/deviceConnecting';
+import { bleDevicePolling } from '../state';
 
 const DeviceItem = ({ id }) => {
   const dispatch = useDispatch();
@@ -22,11 +23,14 @@ const DeviceItem = ({ id }) => {
   const { name } = useSelector((state) => state.ble.device[id].device);
   const connecting = useSelector((state) => state.ble.device[id].connecting);
   const batteryLevel = useSelector((state) => state.ble.device[id].batteryLevel);
+  const signal = useSelector((state) => state.ble.device[id].signal);
   const toggleSelected = () => {
     if (!selected) {
       dispatch(deviceConnecting({ id }));
+      dispatch(bleDevicePolling({ id, polling: true }));
       setSelected(true);
     } else {
+      dispatch(bleDevicePolling({ id, polling: false }));
       setSelected(false);
     }
   };
@@ -62,7 +66,15 @@ const DeviceItem = ({ id }) => {
           accessibilityLabel={`"${name}" battery level`}
           style={styles.deviceProp}
         >
-          {`${batteryLevel}%`}
+          {`🔋 ${batteryLevel}%`}
+        </Text>
+      )}
+      {selected && signal && (
+        <Text
+          accessibilityLabel={`"${name}" signal`}
+          style={styles.deviceProp}
+        >
+          {`📶 ${signal}`}
         </Text>
       )}
     </Pressable>

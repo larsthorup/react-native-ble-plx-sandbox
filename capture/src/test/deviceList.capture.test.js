@@ -3,7 +3,7 @@ import { getBleManager } from '../lib/ble';
 import { assert, it } from '../lib/testRunner';
 
 // TODO: lib/bleConstants.js
-const batteryServiceUuid = '0000180F-0000-1000-8000-00805f9b34fb';
+const batteryServiceUuid = '0000180f-0000-1000-8000-00805f9b34fb';
 const batteryLevelCharacteristicUuid = '00002a19-0000-1000-8000-00805f9b34fb';
 
 // TODO: lib/base64
@@ -111,6 +111,17 @@ class BleManagerCapture {
       request: { id },
     });
   }
+  async servicesForDevice(deviceId) {
+    const services = await this.bleManager.servicesForDevice(deviceId);
+    const { id } = this.recordDevice; // TODO: replace volatile data before capture
+    this.record({
+      type: 'command',
+      command: 'servicesForDevice',
+      request: { id },
+      response: services.map((service) => ({ uuid: service.uuid })),
+    });
+    return services;
+  }
   async readCharacteristicForDevice(deviceId, serviceUuid, characteristicUuid) {
     const response = await this.bleManager.readCharacteristicForDevice(
       deviceId,
@@ -163,10 +174,28 @@ it('should receive scan result', async () => {
   bleManagerCapture.label('scanned');
 });
 
-it('should read battery level', async () => {
+it('should connect to device', async () => {
   const { id } = device;
   await bleManagerCapture.connectToDevice(id);
   await bleManagerCapture.discoverAllServicesAndCharacteristicsForDevice(id);
+});
+
+it('should read battery level', async () => {
+  const { id } = device;
+  const services = await bleManagerCapture.servicesForDevice(id);
+  assert.ok(services.find((service) => service.uuid.toLowerCase() === batteryServiceUuid.toLowerCase()));
+  bleManagerCapture.recordValue = base64FromUint8(42); // TODO: inject value to record, how?
+  const { value } = await bleManagerCapture.readCharacteristicForDevice(id, batteryServiceUuid, batteryLevelCharacteristicUuid);
+  const batteryLevel = uint8FromBase64(value);
+  console.log(`(actual batteryLevel = ${batteryLevel})`);
+  assert.ok(batteryLevel >= 0, `Expected ${batteryLevel} >= 0`);
+  assert.ok(batteryLevel <= 100, `Expected ${batteryLevel} <= 100`);
+});
+
+it('should read battery level again', async () => {
+  const { id } = device;
+  const services = await bleManagerCapture.servicesForDevice(id);
+  assert.ok(services.find((service) => service.uuid.toLowerCase() === batteryServiceUuid.toLowerCase()));
   bleManagerCapture.recordValue = base64FromUint8(42); // TODO: inject value to record, how?
   const { value } = await bleManagerCapture.readCharacteristicForDevice(id, batteryServiceUuid, batteryLevelCharacteristicUuid);
   const batteryLevel = uint8FromBase64(value);

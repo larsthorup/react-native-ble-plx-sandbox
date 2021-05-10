@@ -177,9 +177,15 @@ describe('DeviceList', () => {
 
     // then: eventually battery level is shown
     await waitFor(() => getByA11yLabel('"The Speaker" battery level'));
-    expect(getByA11yLabel('"The Speaker" battery level')).toHaveTextContent('42%');
+    expect(getByA11yLabel('"The Speaker" battery level')).toHaveTextContent('🔋 42%');
 
     // then: loading indicator is no longer shown
     expect(queryByA11yLabel('Connecting to "The Speaker"')).toBeFalsy();
+
+    // when: clicking the device again
+    fireEvent.press(getByA11yLabel('Disconnect from "The Speaker"'));
+
+    // then: battery level is no longer shown
+    expect(queryByA11yLabel('"The Speaker" battery level')).toBeFalsy();
   });
 });

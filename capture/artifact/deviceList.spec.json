@@ -69,6 +69,72 @@
     "optional": true
   },
   {
+    "type": "event",
+    "event": "deviceScan",
+    "args": {
+      "device": {
+        "id": "12-34-56-78-9A-BC",
+        "name": "The Speaker"
+      }
+    },
+    "optional": true
+  },
+  {
+    "type": "event",
+    "event": "deviceScan",
+    "args": {
+      "device": {
+        "id": "12-34-56-78-9A-BC",
+        "name": "The Speaker"
+      }
+    },
+    "optional": true
+  },
+  {
+    "type": "event",
+    "event": "deviceScan",
+    "args": {
+      "device": {
+        "id": "12-34-56-78-9A-BC",
+        "name": "The Speaker"
+      }
+    },
+    "optional": true
+  },
+  {
+    "type": "event",
+    "event": "deviceScan",
+    "args": {
+      "device": {
+        "id": "12-34-56-78-9A-BC",
+        "name": "The Speaker"
+      }
+    },
+    "optional": true
+  },
+  {
+    "type": "event",
+    "event": "deviceScan",
+    "args": {
+      "device": {
+        "id": "12-34-56-78-9A-BC",
+        "name": "The Speaker"
+      }
+    },
+    "optional": true
+  },
+  {
+    "type": "event",
+    "event": "deviceScan",
+    "args": {
+      "device": {
+        "id": "12-34-56-78-9A-BC",
+        "name": "The Speaker"
+      }
+    },
+    "optional": true
+  },
+  {
     "type": "command",
     "command": "connectToDevice",
     "request": {
@@ -84,10 +150,40 @@
   },
   {
     "type": "command",
+    "command": "servicesForDevice",
+    "request": {
+      "id": "12-34-56-78-9A-BC"
+    },
+    "response": [
+      {
+        "uuid": "00001801-0000-1000-8000-00805f9b34fb"
+      },
+      {
+        "uuid": "00001800-0000-1000-8000-00805f9b34fb"
+      },
+      {
+        "uuid": "0000180a-0000-1000-8000-00805f9b34fb"
+      },
+      {
+        "uuid": "0000180f-0000-1000-8000-00805f9b34fb"
+      },
+      {
+        "uuid": "0000fe89-0000-1000-8000-00805f9b34fb"
+      },
+      {
+        "uuid": "00001803-0000-1000-8000-00805f9b34fb"
+      },
+      {
+        "uuid": "00001802-0000-1000-8000-00805f9b34fb"
+      }
+    ]
+  },
+  {
+    "type": "command",
     "command": "readCharacteristicForDevice",
     "request": {
       "id": "12-34-56-78-9A-BC",
-      "serviceUuid": "0000180F-0000-1000-8000-00805f9b34fb",
+      "serviceUuid": "0000180f-0000-1000-8000-00805f9b34fb",
       "characteristicUuid": "00002a19-0000-1000-8000-00805f9b34fb"
     },
     "response": {

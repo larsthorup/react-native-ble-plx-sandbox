@@ -34,9 +34,18 @@ class BleManagerMock {
     this.expectCommand({ command: 'discoverAllServicesAndCharacteristicsForDevice', request: { id } });
   }
 
+  async servicesForDevice(id) {
+    const response = this.expectCommand({ command: 'servicesForDevice', request: { id } });
+    return response;
+  }
+
   async readCharacteristicForDevice(id, serviceUuid, characteristicUuid) {
     const response = this.expectCommand({ command: 'readCharacteristicForDevice', request: { id, serviceUuid, characteristicUuid } });
     return response;
+  }
+
+  async readRSSIForDevice(id) {
+    return { rssi: -42 }; // TODO: use capture
   }
 
   async expectCommand({ command, request }) {
@@ -48,7 +57,7 @@ class BleManagerMock {
     }
     // TODO: use proper deep equal function
     if (JSON.stringify(message.request) !== JSON.stringify(request)) {
-      console.error(`BleManagerMock: expected command "${command}" to have request "${JSON.stringify(request)}" but found "${JSON.stringify(message)}"`);
+      console.error(`BleManagerMock: expected command "${command}" to have request\n"${JSON.stringify(request)}" but found\n"${JSON.stringify(message.request)}"`);
     }
     // console.log(`BleManagerMock: ${command} returning ${JSON.stringify(response)}`);
     return response;

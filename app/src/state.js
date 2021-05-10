@@ -103,6 +103,26 @@ export const bleDeviceConnecting = register('bleDeviceConnecting', (state, { id,
   }
 });
 
+export const bleDevicePolling = register('bleDevicePolling', (state, { id, polling }) => {
+  if (state.ble.device[id].polling !== polling) {
+    return {
+      ...state,
+      ble: {
+        ...state.ble,
+        device: {
+          ...state.ble.device,
+          [id]: {
+            ...state.ble.device[id],
+            polling,
+          },
+        },
+      },
+    };
+  } else {
+    return state;
+  }
+});
+
 export const bleDeviceBatteryLevel = register('bleDeviceBatteryLevel', (state, { id, batteryLevel }) => {
   if (state.ble.device[id].batteryLevel !== batteryLevel) {
     return {
@@ -114,6 +134,26 @@ export const bleDeviceBatteryLevel = register('bleDeviceBatteryLevel', (state, {
           [id]: {
             ...state.ble.device[id],
             batteryLevel,
+          },
+        },
+      },
+    };
+  } else {
+    return state;
+  }
+});
+
+export const bleDeviceSignal = register('bleDeviceSignal', (state, { id, signal }) => {
+  if (state.ble.device[id].signal !== signal) {
+    return {
+      ...state,
+      ble: {
+        ...state.ble,
+        device: {
+          ...state.ble.device,
+          [id]: {
+            ...state.ble.device[id],
+            signal,
           },
         },
       },

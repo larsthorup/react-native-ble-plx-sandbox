@@ -27,6 +27,6 @@ export const deviceScanning = async (dispatch, getState) => {
       }
     }, true);
   } catch (err) {
-    console.error(err);
+    console.error('deviceScanning', err);
   }
 };
