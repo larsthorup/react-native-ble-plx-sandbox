@@ -74,7 +74,7 @@ const DeviceList = () => {
   const deviceSet = useSelector((state) => state.ble.deviceSet);
   const deviceIdList = Object.keys(deviceSet).sort();
   return (
-    <SafeAreaView>
+    <SafeAreaView style={styles.top}>
       <StatusBar />
       <Section title="BLE Sandbox" />
       <Section title="BLE state">
@@ -94,6 +94,10 @@ const DeviceList = () => {
 };
 
 const styles = StyleSheet.create({
+  top: {
+    backgroundColor: '#888',
+    height: '100%',
+  },
   deviceItem: {
     backgroundColor: '#444444',
     marginHorizontal: 16,
