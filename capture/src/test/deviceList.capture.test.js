@@ -7,7 +7,7 @@ import { BleManagerCapture } from '../lib/bleManagerCapture';
 // TODO: before:  capture = bleManagerCapture('deviceList')
 const expectedDeviceNames = ['BeoPlay A1', 'UE Mobile Boombox', 'Jamstack', 'JBL Charge 4']; //, '[TV] mus-UE40JU7005']; //, '4A:27:91:E1:6A:F7']; // , 'vívoactive3'];
 console.log('Looking for speakers', expectedDeviceNames);
-const deviceNameIn = deviceNames => device => deviceNames.indexOf(device.name) >= 0;
+const deviceNameIn = deviceNames => device => (deviceNames.indexOf(device.name) >= 0 || deviceNames.indexOf(device.id) >= 0);
 const bleManager = getBleManager();
 const bleManagerCapture = new BleManagerCapture(bleManager);
 bleManagerCapture.deviceCriteria = deviceNameIn(expectedDeviceNames);
