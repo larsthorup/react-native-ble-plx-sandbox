@@ -13,10 +13,11 @@
     "android:log": "adb logcat -d -v raw -s ReactNativeJS:V",
     "android:stop": "adb shell pm clear com.xpqf.rnblesandboxcapture",
     "capture": "node src/script/testRunnerCli.mjs",
+    "match": "node src/script/specMatcherCli.mjs",
     "eslint": "eslint . --fix --max-warnings 0 --ignore-path .gitignore",
     "ios": "react-native run-ios",
     "start": "react-native start",
-    "test": "npm run eslint && npm run android:build && npm run android:stop && npm run android:install && npm run capture"
+    "test": "npm run eslint && npm run android:build && npm run android:stop && npm run android:install && npm run capture && npm run match"
   },
   "dependencies": {
     "buffer": "^6.0.3",
