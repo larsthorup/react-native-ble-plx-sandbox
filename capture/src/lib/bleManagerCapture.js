@@ -31,6 +31,7 @@ export class BleManagerCapture {
     });
   }
   startDeviceScan(uuidList, scanOptions, listener) {
+    this.reported = [];
     this.bleManager.startDeviceScan(uuidList, scanOptions, (error, device) => {
       if (error) {
         this.record({
@@ -53,6 +54,14 @@ export class BleManagerCapture {
         });
         listener(error, device);
       } else {
+        if (this.reported.indexOf(device.id) < 0) {
+          console.log(`device with id ${device.id} named ${device.name} is not what we are looking for. ManufacturerData: ${device.manufacturerData}`);
+          this.reported.push(device.id);
+          // comment out the three next lines if they are too noisy
+          // const devReport = {...device};
+          // Object.keys(devReport).forEach(key => { if (key.startsWith('_')) { delete devReport[key]; }});
+          // console.log(devReport);
+        }
         // Note: hide unwanted scan responses for now as they are usually quite noisy
         // const { id, name } = device;
         // this.exclude({

@@ -5,26 +5,39 @@ import { base64FromUint8, uint8FromBase64 } from '../lib/base64';
 import { BleManagerCapture } from '../lib/bleManagerCapture';
 
 // TODO: before:  capture = bleManagerCapture('deviceList')
-const expectedDeviceName = 'BeoPlay A1'; // TODO: configure per developer
-const deviceNameEquals = deviceName => device => device.name === deviceName;
+const expectedDeviceNames = ['BeoPlay A1', 'UE Mobile Boombox', 'Jamstack', 'JBL Charge 4']; // , 'vívoactive3'];
+console.log('Looking for speakers', expectedDeviceNames);
+const deviceNameIn = deviceNames => device => deviceNames.indexOf(device.name) >= 0;
 const bleManager = getBleManager();
 const bleManagerCapture = new BleManagerCapture(bleManager);
-bleManagerCapture.deviceCriteria = deviceNameEquals(expectedDeviceName);
+bleManagerCapture.deviceCriteria = deviceNameIn(expectedDeviceNames);
 bleManagerCapture.recordDevice = { id: '12-34-56-78-9A-BC', name: 'The Speaker' };
 let device;
 
+console.log('Telefonen spørger om adgang til Bluetooth');
+
 it('should receive scan result', async () => {
   // TODO: device = await expectDeviceScanResult({criteria: deviceNameEquals(expectedDeviceName)})
-  device = await new Promise(resolve => {
+  device = await new Promise((resolve, reject) => {
     bleManagerCapture.onStateChange((powerState) => {
       if (powerState === 'PoweredOn') {
         const uuidList = null;
         const scanOptions = null;
         bleManagerCapture.startDeviceScan(uuidList, scanOptions, (error, d) => {
-          if (!error && d.name === expectedDeviceName) {
+          console.log('startDeviceScan', uuidList, scanOptions, error, d.name);
+          if (!error && deviceNameIn(expectedDeviceNames)(d)) {
             resolve(d);
+          } else if (error) {
+            console.log('error in startDeviceScan', error);
+            reject(error);
+          } else {
+            console.log('other device', d.name, d);
+            reject('other device ' + d.name);
           }
         });
+      } else if (powerState === 'PoweredOff') {
+        console.warn('Bluetooth er slukket på telefonen');
+        reject('Bluetooth er slukket på telefonen');
       }
     }, true);
   });
