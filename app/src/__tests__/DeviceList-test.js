@@ -12,180 +12,192 @@ import { act } from 'react-test-renderer';
 jest.mock('../lib/ble');
 
 describe('DeviceList', () => {
-  it('should display empty list of BLE devices', async () => {
-    const bleManagerMock = autoMockBleManager([
-      {
-        'type': 'command',
-        'command': 'onStateChange',
-        'request': {
-          'emitCurrentState': true,
-        },
-      },
-      {
-        'type': 'event',
-        'event': 'stateChange',
-        'args': {
-          'powerState': 'PoweredOn',
-        },
-      },
-      {
-        'type': 'command',
-        'command': 'startDeviceScan',
-        'request': {
-          'uuidList': null,
-          'scanOptions': null,
-        },
-      },
-      {
-        'type': 'label',
-        'label': 'powered',
-      },
-    ]);
+  describe('auto-mocking', () => {
+    let bleManagerMock;
 
-    // when: render the app
-    const { queryAllByA11yLabel, getByA11yLabel } = render(withStore(<DeviceList />, configureStore()));
-
-    // when: simulating some BLE traffic
-    act(() => {
-      bleManagerMock.playUntil('powered'); // Note: causes re-render, so act() is needed
+    beforeEach(() => {
+      const spec = JSON.parse(fs.readFileSync('../capture/artifact/deviceList.spec.json')); // TODO: relative path
+      bleManagerMock = autoMockBleManager(spec);
     });
 
-    // then: initially no devices are displayed
-    expect(getByA11yLabel('BLE state')).toHaveTextContent('PoweredOn');
-    expect(queryAllByA11yLabel('BLE device')).toEqual([]);
+    afterEach(() => {
+      bleManagerMock.expectFullCaptureCoverage();
+    });
+
+    it('should load and show device info', async () => {
+      // when: render the app
+      const { getByA11yLabel, queryByA11yLabel } = render(withStore(<DeviceList />, configureStore()));
+
+      // then: no loading indicator is shown
+      expect(queryByA11yLabel('Connecting to "The Speaker"')).toBeFalsy();
+
+      // when: simulating BLE scan response
+      act(() => {
+        bleManagerMock.playUntil('scanned'); // Note: causes re-render, so act() is needed
+      });
+
+      // when: clicking a device
+      fireEvent.press(getByA11yLabel('Connect to "The Speaker"'));
+
+      // then: loading indicator is shown
+      expect(queryByA11yLabel('Connecting to "The Speaker"')).toBeTruthy();
+
+      // then: eventually battery level is shown
+      await waitFor(() => getByA11yLabel('"The Speaker" battery level'));
+      expect(getByA11yLabel('"The Speaker" battery level')).toHaveTextContent('🔋 42%');
+
+      // then: loading indicator is no longer shown
+      expect(queryByA11yLabel('Connecting to "The Speaker"')).toBeFalsy();
+
+      // when: clicking the device again
+      fireEvent.press(getByA11yLabel('Disconnect from "The Speaker"'));
+
+      // then: battery level is no longer shown
+      expect(queryByA11yLabel('"The Speaker" battery level')).toBeFalsy();
+    });
   });
 
-  it('should display list of BLE devices', async () => {
-    const bleManagerMock = autoMockBleManager([
-      {
-        'type': 'command',
-        'command': 'onStateChange',
-        'request': {
-          'emitCurrentState': true,
+  describe('manual mocking', () => {
+    it('should display empty list of BLE devices', async () => {
+      const bleManagerMock = autoMockBleManager([
+        {
+          'type': 'command',
+          'command': 'onStateChange',
+          'request': {
+            'emitCurrentState': true,
+          },
         },
-      },
-      {
-        'type': 'event',
-        'event': 'stateChange',
-        'args': {
-          'powerState': 'PoweredOn',
+        {
+          'type': 'event',
+          'event': 'stateChange',
+          'args': {
+            'powerState': 'PoweredOn',
+          },
         },
-      },
-      {
-        'type': 'command',
-        'command': 'startDeviceScan',
-        'request': {
-          'uuidList': null,
-          'scanOptions': null,
+        {
+          'type': 'command',
+          'command': 'startDeviceScan',
+          'request': {
+            'uuidList': null,
+            'scanOptions': null,
+          },
         },
-      },
-      { type: 'event', event: 'deviceScan', args: { device: { id: 'SND', name: 'SomeDeviceName' } } },
-      { type: 'event', event: 'deviceScan', args: { device: { id: 'SON', name: 'SomeOtherName' } } },
-      { type: 'label', label: 'scanned' },
-    ]);
+        {
+          'type': 'label',
+          'label': 'powered',
+        },
+      ]);
 
-    // when: render the app
-    const { getAllByA11yLabel } = render(withStore(<DeviceList />, configureStore()));
+      // when: render the app
+      const { queryAllByA11yLabel, getByA11yLabel } = render(withStore(<DeviceList />, configureStore()));
 
-    // when: simulating some BLE traffic
-    act(() => {
-      bleManagerMock.playUntil('scanned'); // Note: causes re-render, so act() is needed
+      // when: simulating some BLE traffic
+      act(() => {
+        bleManagerMock.playUntil('powered'); // Note: causes re-render, so act() is needed
+      });
+
+      // then: initially no devices are displayed
+      expect(getByA11yLabel('BLE state')).toHaveTextContent('PoweredOn');
+      expect(queryAllByA11yLabel('BLE device')).toEqual([]);
     });
 
-    // then: eventually the scanned devices are displayed
-    expect(getAllByA11yLabel('BLE device')).toEqual([
-      expect.toHaveTextContent('SomeDeviceName'),
-      expect.toHaveTextContent('SomeOtherName'),
-    ]);
-  });
-
-  it('should display list of BLE devices as they appear', async () => {
-    const bleManagerMock = autoMockBleManager([
-      {
-        'type': 'command',
-        'command': 'onStateChange',
-        'request': {
-          'emitCurrentState': true,
+    it('should display list of BLE devices', async () => {
+      const bleManagerMock = autoMockBleManager([
+        {
+          'type': 'command',
+          'command': 'onStateChange',
+          'request': {
+            'emitCurrentState': true,
+          },
         },
-      },
-      {
-        'type': 'event',
-        'event': 'stateChange',
-        'args': {
-          'powerState': 'PoweredOn',
+        {
+          'type': 'event',
+          'event': 'stateChange',
+          'args': {
+            'powerState': 'PoweredOn',
+          },
         },
-      },
-      {
-        'type': 'command',
-        'command': 'startDeviceScan',
-        'request': {
-          'uuidList': null,
-          'scanOptions': null,
+        {
+          'type': 'command',
+          'command': 'startDeviceScan',
+          'request': {
+            'uuidList': null,
+            'scanOptions': null,
+          },
         },
-      },
-      { type: 'event', event: 'deviceScan', args: { device: { id: 'SDN', name: 'SomeDeviceName' } } },
-      { type: 'label', label: 'some-scanned' },
-      { type: 'event', event: 'deviceScan', args: { device: { id: 'SON', name: 'SomeOtherName' } } },
-      { type: 'label', label: 'all-scanned' },
-    ]);
+        { type: 'event', event: 'deviceScan', args: { device: { id: 'SND', name: 'SomeDeviceName' } } },
+        { type: 'event', event: 'deviceScan', args: { device: { id: 'SON', name: 'SomeOtherName' } } },
+        { type: 'label', label: 'scanned' },
+      ]);
 
-    // when: render the app
-    const { getAllByA11yLabel } = render(withStore(<DeviceList />, configureStore()));
+      // when: render the app
+      const { getAllByA11yLabel } = render(withStore(<DeviceList />, configureStore()));
 
-    // when: simulating some BLE traffic
-    act(() => {
-      bleManagerMock.playUntil('some-scanned'); // Note: causes re-render, so act() is needed
+      // when: simulating some BLE traffic
+      act(() => {
+        bleManagerMock.playUntil('scanned'); // Note: causes re-render, so act() is needed
+      });
+
+      // then: eventually the scanned devices are displayed
+      expect(getAllByA11yLabel('BLE device')).toEqual([
+        expect.toHaveTextContent('SomeDeviceName'),
+        expect.toHaveTextContent('SomeOtherName'),
+      ]);
     });
 
-    // then: eventually the scanned devices are displayed
-    expect(getAllByA11yLabel('BLE device')).toEqual([
-      expect.toHaveTextContent('SomeDeviceName'),
-    ]);
+    it('should display list of BLE devices as they appear', async () => {
+      const bleManagerMock = autoMockBleManager([
+        {
+          'type': 'command',
+          'command': 'onStateChange',
+          'request': {
+            'emitCurrentState': true,
+          },
+        },
+        {
+          'type': 'event',
+          'event': 'stateChange',
+          'args': {
+            'powerState': 'PoweredOn',
+          },
+        },
+        {
+          'type': 'command',
+          'command': 'startDeviceScan',
+          'request': {
+            'uuidList': null,
+            'scanOptions': null,
+          },
+        },
+        { type: 'event', event: 'deviceScan', args: { device: { id: 'SDN', name: 'SomeDeviceName' } } },
+        { type: 'label', label: 'some-scanned' },
+        { type: 'event', event: 'deviceScan', args: { device: { id: 'SON', name: 'SomeOtherName' } } },
+        { type: 'label', label: 'all-scanned' },
+      ]);
 
-    // when: simulating remaining BLE traffic
-    act(() => {
-      bleManagerMock.playUntil('all-scanned'); // Note: causes re-render, so act() is needed
+      // when: render the app
+      const { getAllByA11yLabel } = render(withStore(<DeviceList />, configureStore()));
+
+      // when: simulating some BLE traffic
+      act(() => {
+        bleManagerMock.playUntil('some-scanned'); // Note: causes re-render, so act() is needed
+      });
+
+      // then: eventually the scanned devices are displayed
+      expect(getAllByA11yLabel('BLE device')).toEqual([
+        expect.toHaveTextContent('SomeDeviceName'),
+      ]);
+
+      // when: simulating remaining BLE traffic
+      act(() => {
+        bleManagerMock.playUntil('all-scanned'); // Note: causes re-render, so act() is needed
+      });
+
+      // then: eventually the scanned devices are displayed
+      expect(getAllByA11yLabel('BLE device')).toEqual([
+        expect.toHaveTextContent('SomeDeviceName'),
+        expect.toHaveTextContent('SomeOtherName'),
+      ]);
     });
-
-    // then: eventually the scanned devices are displayed
-    expect(getAllByA11yLabel('BLE device')).toEqual([
-      expect.toHaveTextContent('SomeDeviceName'),
-      expect.toHaveTextContent('SomeOtherName'),
-    ]);
-  });
-
-  it('should load and show device info', async () => {
-    const spec = JSON.parse(fs.readFileSync('../capture/artifact/deviceList.spec.json')); // TODO: relative path
-    const bleManagerMock = autoMockBleManager(spec);
-
-    // when: render the app
-    const { getByA11yLabel, queryByA11yLabel } = render(withStore(<DeviceList />, configureStore()));
-
-    // then: no loading indicator is shown
-    expect(queryByA11yLabel('Connecting to "The Speaker"')).toBeFalsy();
-
-    // when: simulating BLE scan response
-    act(() => {
-      bleManagerMock.playUntil('scanned'); // Note: causes re-render, so act() is needed
-    });
-
-    // when: clicking a device
-    fireEvent.press(getByA11yLabel('Connect to "The Speaker"'));
-
-    // then: loading indicator is shown
-    expect(queryByA11yLabel('Connecting to "The Speaker"')).toBeTruthy();
-
-    // then: eventually battery level is shown
-    await waitFor(() => getByA11yLabel('"The Speaker" battery level'));
-    expect(getByA11yLabel('"The Speaker" battery level')).toHaveTextContent('🔋 42%');
-
-    // then: loading indicator is no longer shown
-    expect(queryByA11yLabel('Connecting to "The Speaker"')).toBeFalsy();
-
-    // when: clicking the device again
-    fireEvent.press(getByA11yLabel('Disconnect from "The Speaker"'));
-
-    // then: battery level is no longer shown
-    expect(queryByA11yLabel('"The Speaker" battery level')).toBeFalsy();
   });
 });

@@ -140,6 +140,12 @@ class BleManagerMock {
     }
   }
 
+  expectFullCaptureCoverage() {
+    const remainingMessageCount = this.messageList.length - this.nextMessageIndex;
+    if (remainingMessageCount > 0) {
+      throw new Error(`Expected recording to be fully covered but last ${remainingMessageCount} messages were not played`);
+    }
+  }
 }
 
 let bleManagerMock; // TODO: avoid global to support parallel jest tests
