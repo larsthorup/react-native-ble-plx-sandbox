@@ -15,5 +15,6 @@ if (matcher.isAMatch(capture)) {
   console.log(`BLE capture matches spec file ${specPath}`);
 } else {
   console.warn(`BLE capture does NOT match spec file ${specPath}`);
+  process.exit(1);
 }
 

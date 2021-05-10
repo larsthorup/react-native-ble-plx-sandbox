@@ -7,17 +7,17 @@ export default class SpecMatcher {
   isAMatch(actual/* : messageList */) {
     let actualIndex = 0;
     let specIndex = 0;
-    while(true) {
+    while (true) {
       if (actualIndex === actual.length) {
         if (specIndex === this.spec.length) {
           return true;
         } else {
-          console.error("Actual is too short", actualIndex, specIndex);
+          console.error(`Actual is too short: still ${this.spec.length - specIndex} messages in spec`);
           return false;
         }
-      }  
+      }
       if (specIndex === this.spec.length) {
-        console.error("Actual is too long", actualIndex, specIndex);
+        console.error(`Actual is too long: still ${actual.length - actualIndex} messages in actual`);
         return false;
       }
       const actualItem = actual[actualIndex];
@@ -35,6 +35,6 @@ export default class SpecMatcher {
   }
 
   itemMatch(actualItem, specItem) {
-    return JSON.stringify({...actualItem, optional: true}) === JSON.stringify({...specItem, optional: true});
+    return JSON.stringify({ ...actualItem, optional: true }) === JSON.stringify({ ...specItem, optional: true });
   }
 }
