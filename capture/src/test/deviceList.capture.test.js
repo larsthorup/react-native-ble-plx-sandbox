@@ -22,18 +22,22 @@ class BleManagerCapture {
     console.log(`(excluding ${JSON.stringify(item)})`);
   }
   label(label) {
-    this.record({ label });
+    this.record({ type: 'label', label });
   }
   onStateChange(listener, emitCurrentState) {
     this.bleManager.onStateChange((powerState) => {
       this.record({
-        event: 'onStateChange', // TODO: stateChange
-        powerState,
+        type: 'event',
+        event: 'stateChange',
+        args: {
+          powerState,
+        },
       });
       listener(powerState);
     }, emitCurrentState);
     this.record({
-      command: 'onStateChange', // TODO: type: 'event', name: 'stateChange', args
+      type: 'command',
+      command: 'onStateChange',
       request: {
         emitCurrentState,
       },
@@ -43,29 +47,39 @@ class BleManagerCapture {
     this.bleManager.startDeviceScan(uuidList, scanOptions, (error, device) => {
       if (error) {
         this.record({
-          event: 'onDeviceScan',
-          error: { message },
+          type: 'event',
+          event: 'deviceScan',
+          args: {
+            error: { message },
+          },
         });
         listener(error, device);
         const { message } = error;
       } else if (this.deviceCriteria(device)) {
-        const { id, name } = this.recordDevice; // TODO: replace volatile data before capture
+        const { id, name } = this.recordDevice;
         this.record({
-          event: 'onDeviceScan',
-          device: { id, name },
+          type: 'event',
+          event: 'deviceScan',
+          args: {
+            device: { id, name },
+          },
         });
         listener(error, device);
       } else {
         // Note: hide unwanted scan responses for now as they are usually quite noisy
         // const { id, name } = device;
         // this.exclude({
-        //   event: 'onDeviceScan',
-        //   device: { id, name },
+        //   type: 'event'
+        //   event: 'deviceScan',
+        //   args: {
+        //     device: { id, name },
+        //   }
         // });
       }
     });
     this.record({
-      command: 'startDeviceScan', // TODO: type: 'command', name: 'startDeviceScan'
+      type: 'command',
+      command: 'startDeviceScan',
       request: {
         uuidList,
         scanOptions,
@@ -75,13 +89,15 @@ class BleManagerCapture {
   stopDeviceScan() {
     this.bleManager.stopDeviceScan();
     this.record({
-      command: 'stopDeviceScan', // TODO: type: 'command', name: 'stopDeviceScan'
+      type: 'command',
+      command: 'stopDeviceScan',
     });
   }
   async connectToDevice(deviceId) {
     await this.bleManager.connectToDevice(deviceId);
     const { id } = this.recordDevice; // TODO: replace volatile data before capture
     this.record({
+      type: 'command',
       command: 'connectToDevice',
       request: { id },
     });
@@ -90,6 +106,7 @@ class BleManagerCapture {
     await this.bleManager.discoverAllServicesAndCharacteristicsForDevice(deviceId);
     const { id } = this.recordDevice; // TODO: replace volatile data before capture
     this.record({
+      type: 'command',
       command: 'discoverAllServicesAndCharacteristicsForDevice',
       request: { id },
     });
@@ -104,6 +121,7 @@ class BleManagerCapture {
     const { id } = this.recordDevice; // TODO: replace volatile data before capture
     const value = this.recordValue; // TODO: replace volatile data before capture
     this.record({
+      type: 'command',
       command: 'readCharacteristicForDevice',
       request: {
         id,

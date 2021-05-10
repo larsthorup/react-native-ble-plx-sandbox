@@ -18,10 +18,10 @@ class BleManagerMock {
     this.stateChangeListener = listener;
   }
 
-  startDeviceScan(uuidList, scanOptions, onDeviceScan) {
+  startDeviceScan(uuidList, scanOptions, listener) {
     // TODO: error if listener alreay exists
     this.expectCommand({ command: 'startDeviceScan', request: { uuidList, scanOptions } });
-    this.onDeviceScan = onDeviceScan;
+    this.deviceScanListener = listener;
   }
 
   stopDeviceScan() { }
@@ -56,25 +56,24 @@ class BleManagerMock {
 
   playNext() {
     const message = this.popMessage();
-    const { command, event, label } = message;
-    if (label) {
+    const { args, command, event, label, type } = message;
+    if (type === 'label') {
       console.log(`(BleManagerMock: unused label: "${label}")`);
-    } else if (event) { // TODO: type === 'event'
-      switch (event) { // TODO: name
-        case 'onDeviceScan': // TODO: 'deviceScan'
-          const { onDeviceScan } = this; // TODO: deviceScanListener
-          if (onDeviceScan) {
-            const error = null;
-            const { device } = message;
-            onDeviceScan(error, device);
+    } else if (type === 'event') {
+      switch (event) {
+        case 'deviceScan':
+          const { deviceScanListener } = this;
+          if (deviceScanListener) {
+            const { device, error } = args;
+            deviceScanListener(error, device);
           } else {
             console.warn(`BleManagerMock: message cannot be delivered, as bleManager.startDeviceScan has not yet been called: ${JSON.stringify(message)}`);
           }
           break;
-        case 'onStateChange':
+        case 'stateChange':
           const { stateChangeListener } = this;
           if (stateChangeListener) {
-            const { powerState } = message;
+            const { powerState } = args;
             stateChangeListener(powerState);
           } else {
             console.warn(`BleManagerMock: message cannot be delivered, as bleManager.onStateChange has not yet been called: ${JSON.stringify(message)}`);
@@ -83,8 +82,13 @@ class BleManagerMock {
         default:
           throw new Error(`BleManagerMock: Unrecognized event "${event}" in message ${JSON.stringify(message)}`);
       }
-    } else if (command) { // TODO: type === 'command'
+    } else if (type === 'command') {
       throw new Error(`BleManagerMock: command "${command}" expected but has not yet been called: ${JSON.stringify(message)}`);
+    } else if (type === 'label') {
+      // TODO: silent skip extra labels??
+      throw new Error(`BleManagerMock: missing playUntil('${label}'): ${JSON.stringify(message)}`);
+    } else {
+      throw new Error(`BleManagerMock: Unrecognized type "${type}": ${JSON.stringify(message)}`);
     }
   }
 
@@ -95,7 +99,8 @@ class BleManagerMock {
         if (this.nextMessageIndex >= this.messageList.length) {
           throw new Error(`BleManagerMock: command not found in recording since index ${fromMessageIndex}`);
         }
-        if (this.messageList[this.nextMessageIndex].command) {
+        const message = this.messageList[this.nextMessageIndex];
+        if (message.type === 'command' && message.command) {
           break;
         }
         this.playNext();
@@ -113,7 +118,8 @@ class BleManagerMock {
         if (this.nextMessageIndex >= this.messageList.length) {
           throw new Error(`BleManagerMock: label "${label}" not found in recording since index ${fromMessageIndex}`);
         }
-        if (this.messageList[this.nextMessageIndex].label === label) {
+        const message = this.messageList[this.nextMessageIndex];
+        if (message.type === 'label' && message.label === label) {
           this.popMessage();
           break;
         }

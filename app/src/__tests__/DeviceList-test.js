@@ -15,23 +15,31 @@ describe('DeviceList', () => {
   it('should display empty list of BLE devices', async () => {
     const bleManagerMock = autoMockBleManager([
       {
+        'type': 'command',
         'command': 'onStateChange',
         'request': {
           'emitCurrentState': true,
         },
       },
       {
-        'event': 'onStateChange',
-        'powerState': 'PoweredOn',
+        'type': 'event',
+        'event': 'stateChange',
+        'args': {
+          'powerState': 'PoweredOn',
+        },
       },
       {
+        'type': 'command',
         'command': 'startDeviceScan',
         'request': {
           'uuidList': null,
           'scanOptions': null,
         },
       },
-      { label: 'powered' },
+      {
+        'type': 'label',
+        'label': 'powered',
+      },
     ]);
 
     // when: render the app
@@ -50,25 +58,30 @@ describe('DeviceList', () => {
   it('should display list of BLE devices', async () => {
     const bleManagerMock = autoMockBleManager([
       {
+        'type': 'command',
         'command': 'onStateChange',
         'request': {
           'emitCurrentState': true,
         },
       },
       {
-        'event': 'onStateChange',
-        'powerState': 'PoweredOn',
+        'type': 'event',
+        'event': 'stateChange',
+        'args': {
+          'powerState': 'PoweredOn',
+        },
       },
       {
+        'type': 'command',
         'command': 'startDeviceScan',
         'request': {
           'uuidList': null,
           'scanOptions': null,
         },
       },
-      { event: 'onDeviceScan', device: { id: 'SND', name: 'SomeDeviceName' } },
-      { event: 'onDeviceScan', device: { id: 'SON', name: 'SomeOtherName' } },
-      { label: 'scanned' },
+      { type: 'event', event: 'deviceScan', args: { device: { id: 'SND', name: 'SomeDeviceName' } } },
+      { type: 'event', event: 'deviceScan', args: { device: { id: 'SON', name: 'SomeOtherName' } } },
+      { type: 'label', label: 'scanned' },
     ]);
 
     // when: render the app
@@ -89,26 +102,31 @@ describe('DeviceList', () => {
   it('should display list of BLE devices as they appear', async () => {
     const bleManagerMock = autoMockBleManager([
       {
+        'type': 'command',
         'command': 'onStateChange',
         'request': {
           'emitCurrentState': true,
         },
       },
       {
-        'event': 'onStateChange',
-        'powerState': 'PoweredOn',
+        'type': 'event',
+        'event': 'stateChange',
+        'args': {
+          'powerState': 'PoweredOn',
+        },
       },
       {
+        'type': 'command',
         'command': 'startDeviceScan',
         'request': {
           'uuidList': null,
           'scanOptions': null,
         },
       },
-      { event: 'onDeviceScan', device: { id: 'SDN', name: 'SomeDeviceName' } },
-      { label: 'some-scanned' },
-      { event: 'onDeviceScan', device: { id: 'SON', name: 'SomeOtherName' } },
-      { label: 'all-scanned' },
+      { type: 'event', event: 'deviceScan', args: { device: { id: 'SDN', name: 'SomeDeviceName' } } },
+      { type: 'label', label: 'some-scanned' },
+      { type: 'event', event: 'deviceScan', args: { device: { id: 'SON', name: 'SomeOtherName' } } },
+      { type: 'label', label: 'all-scanned' },
     ]);
 
     // when: render the app

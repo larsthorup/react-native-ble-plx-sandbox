@@ -1,15 +1,20 @@
 [
   {
+    "type": "command",
     "command": "onStateChange",
     "request": {
       "emitCurrentState": true
     }
   },
   {
-    "event": "onStateChange",
-    "powerState": "PoweredOn"
+    "type": "event",
+    "event": "stateChange",
+    "args": {
+      "powerState": "PoweredOn"
+    }
   },
   {
+    "type": "command",
     "command": "startDeviceScan",
     "request": {
       "uuidList": null,
@@ -17,42 +22,65 @@
     }
   },
   {
-    "event": "onDeviceScan",
-    "device": {
-      "id": "12-34-56-78-9A-BC",
-      "name": "The Speaker"
+    "type": "event",
+    "event": "deviceScan",
+    "args": {
+      "device": {
+        "id": "12-34-56-78-9A-BC",
+        "name": "The Speaker"
+      }
     }
   },
   {
+    "type": "label",
     "label": "scanned"
   },
   {
-    "event": "onDeviceScan",
-    "device": {
-      "id": "12-34-56-78-9A-BC",
-      "name": "The Speaker"
+    "type": "event",
+    "event": "deviceScan",
+    "args": {
+      "device": {
+        "id": "12-34-56-78-9A-BC",
+        "name": "The Speaker"
+      }
     }
   },
   {
-    "event": "onDeviceScan",
-    "device": {
-      "id": "12-34-56-78-9A-BC",
-      "name": "The Speaker"
+    "type": "event",
+    "event": "deviceScan",
+    "args": {
+      "device": {
+        "id": "12-34-56-78-9A-BC",
+        "name": "The Speaker"
+      }
     }
   },
   {
+    "type": "event",
+    "event": "deviceScan",
+    "args": {
+      "device": {
+        "id": "12-34-56-78-9A-BC",
+        "name": "The Speaker"
+      }
+    }
+  },
+  {
+    "type": "command",
     "command": "connectToDevice",
     "request": {
       "id": "12-34-56-78-9A-BC"
     }
   },
   {
+    "type": "command",
     "command": "discoverAllServicesAndCharacteristicsForDevice",
     "request": {
       "id": "12-34-56-78-9A-BC"
     }
   },
   {
+    "type": "command",
     "command": "readCharacteristicForDevice",
     "request": {
       "id": "12-34-56-78-9A-BC",
