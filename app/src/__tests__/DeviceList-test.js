@@ -24,6 +24,7 @@ describe('DeviceList', () => {
       bleManagerMock.expectFullCaptureCoverage();
     });
 
+    // for (const _ of '*'.repeat(1000))
     it('should load and show device info', async () => {
       // when: render the app
       const { getByA11yLabel, queryByA11yLabel } = render(withStore(<DeviceList />, configureStore()));
