@@ -1,5 +1,9 @@
 import * as assert from 'assert';
 
+import { State as BleState } from 'react-native-ble-plx';
+
+export const State = BleState;
+
 export class BleManager {
   constructor() {
     this.reset();

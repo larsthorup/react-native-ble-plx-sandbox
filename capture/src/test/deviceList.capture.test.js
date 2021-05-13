@@ -1,4 +1,4 @@
-import { BleManager } from 'react-native-ble-plx';
+import { BleManager, State as BleState } from 'react-native-ble-plx';
 import { assert, it } from '../lib/testRunner';
 import { batteryLevelCharacteristicUuid, batteryServiceUuid } from '../lib/bleConstants';
 import { base64FromUint8, uint8FromBase64 } from '../lib/base64';
@@ -20,7 +20,7 @@ it('should receive scan result', async () => {
   // TODO: device = await expectDeviceScanResult({criteria: deviceNameEquals(expectedDeviceName)})
   device = await new Promise((resolve, reject) => {
     bleManagerCapture.onStateChange((powerState) => {
-      if (powerState === 'PoweredOn') {
+      if (powerState === BleState.PoweredOn) {
         const uuidList = null;
         const scanOptions = null;
         bleManagerCapture.startDeviceScan(uuidList, scanOptions, (error, d) => {
@@ -35,9 +35,9 @@ it('should receive scan result', async () => {
             reject('other device ' + d.name);
           }
         });
-      } else if (powerState === 'PoweredOff') {
-        console.warn('Bluetooth er slukket på telefonen');
-        reject('Bluetooth er slukket på telefonen');
+      } else if (powerState === BleState.PoweredOff) {
+        console.warn('Phone Bluetooth is disabled');
+        reject('Phone Bluetooth is disabled');
       }
     }, true);
   });

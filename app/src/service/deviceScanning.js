@@ -1,5 +1,6 @@
 import { blePowerStateChanged, bleDeviceScanned } from '../state';
 import { getBleManager } from '../lib/ble';
+import { State as BleState } from 'react-native-ble-plx';
 
 export const deviceScanning = async (dispatch, getState) => {
   try {
@@ -8,7 +9,7 @@ export const deviceScanning = async (dispatch, getState) => {
     const scanOptions = null;
     bleManager.onStateChange((powerState) => {
       dispatch(blePowerStateChanged({ powerState }));
-      if (powerState === 'PoweredOn') {
+      if (powerState === BleState.PoweredOn) {
         bleManager.startDeviceScan(uuidList, scanOptions, (error, device) => {
           try {
             if (error) {
