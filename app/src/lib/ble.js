@@ -1,10 +1,9 @@
 import { BleManager } from 'react-native-ble-plx';
 
-let bleManager = null;
+// TODO: move to singleton/bleManager.js
+
+const bleManager = new BleManager();
 
 export const getBleManager = () => {
-  if (!bleManager) {
-    bleManager = new BleManager();
-  }
   return bleManager;
 };

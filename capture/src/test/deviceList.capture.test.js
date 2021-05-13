@@ -1,4 +1,4 @@
-import { getBleManager } from '../lib/ble';
+import { BleManager } from 'react-native-ble-plx';
 import { assert, it } from '../lib/testRunner';
 import { batteryLevelCharacteristicUuid, batteryServiceUuid } from '../lib/bleConstants';
 import { base64FromUint8, uint8FromBase64 } from '../lib/base64';
@@ -8,7 +8,7 @@ import { BleManagerCapture } from '../lib/bleManagerCapture';
 const expectedDeviceNames = ['BeoPlay A1', 'UE Mobile Boombox', 'Jamstack', 'JBL Charge 4']; //, '[TV] mus-UE40JU7005']; //, '4A:27:91:E1:6A:F7']; // , 'vívoactive3'];
 console.log('Looking for speakers', expectedDeviceNames);
 const deviceNameIn = deviceNames => device => (deviceNames.indexOf(device.name) >= 0 || deviceNames.indexOf(device.id) >= 0);
-const bleManager = getBleManager();
+const bleManager = new BleManager();
 const bleManagerCapture = new BleManagerCapture(bleManager);
 bleManagerCapture.deviceCriteria = deviceNameIn(expectedDeviceNames);
 bleManagerCapture.recordDevice = { id: '12-34-56-78-9A-BC', name: 'The Speaker' };

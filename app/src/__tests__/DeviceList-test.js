@@ -6,26 +6,19 @@ import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import DeviceList from '../view/DeviceList';
 import { configureStore } from '../state';
 import { withStore } from '../lib/withStore';
-import { autoMockBleManager } from '../lib/ble';
+import { getBleManager } from '../lib/ble';
 import { act } from 'react-test-renderer';
 
-jest.mock('../lib/ble');
+// TODO: DeviceList.test.js
 
 describe('DeviceList', () => {
   describe('auto-mocking', () => {
-    let bleManagerMock;
-
-    beforeEach(() => {
-      const spec = JSON.parse(fs.readFileSync('../capture/artifact/deviceList.spec.json')); // TODO: relative path
-      bleManagerMock = autoMockBleManager(spec);
-    });
-
-    afterEach(() => {
-      bleManagerMock.expectFullCaptureCoverage();
-    });
-
     // for (const _ of '*'.repeat(1000))
     it('should load and show device info', async () => {
+      const spec = JSON.parse(fs.readFileSync('../capture/artifact/deviceList.spec.json')); // TODO: relative path
+      const bleManagerMock = getBleManager();
+      bleManagerMock.mockWith(spec);
+
       // when: render the app
       const { getByA11yLabel, queryByA11yLabel } = render(withStore(<DeviceList />, configureStore()));
 
@@ -55,12 +48,16 @@ describe('DeviceList', () => {
 
       // then: battery level is no longer shown
       expect(queryByA11yLabel('"The Speaker" battery level')).toBeFalsy();
+
+      // finally
+      bleManagerMock.expectFullCaptureCoverage();
     });
   });
 
   describe('manual mocking', () => {
     it('should display empty list of BLE devices', async () => {
-      const bleManagerMock = autoMockBleManager([
+      const bleManagerMock = getBleManager();
+      bleManagerMock.mockWith([
         {
           'type': 'command',
           'command': 'onStateChange',
@@ -100,10 +97,14 @@ describe('DeviceList', () => {
       // then: initially no devices are displayed
       expect(getByA11yLabel('BLE state')).toHaveTextContent('PoweredOn');
       expect(queryAllByA11yLabel('BLE device')).toEqual([]);
+
+      // finally
+      bleManagerMock.expectFullCaptureCoverage();
     });
 
     it('should display list of BLE devices', async () => {
-      const bleManagerMock = autoMockBleManager([
+      const bleManagerMock = getBleManager();
+      bleManagerMock.mockWith([
         {
           'type': 'command',
           'command': 'onStateChange',
@@ -144,10 +145,14 @@ describe('DeviceList', () => {
         expect.toHaveTextContent('SomeDeviceName'),
         expect.toHaveTextContent('SomeOtherName'),
       ]);
+
+      // finally
+      bleManagerMock.expectFullCaptureCoverage();
     });
 
     it('should display list of BLE devices as they appear', async () => {
-      const bleManagerMock = autoMockBleManager([
+      const bleManagerMock = getBleManager();
+      bleManagerMock.mockWith([
         {
           'type': 'command',
           'command': 'onStateChange',
@@ -199,6 +204,9 @@ describe('DeviceList', () => {
         expect.toHaveTextContent('SomeDeviceName'),
         expect.toHaveTextContent('SomeOtherName'),
       ]);
+
+      // finally
+      bleManagerMock.expectFullCaptureCoverage();
     });
   });
 });
