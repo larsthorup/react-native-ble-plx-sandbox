@@ -30,7 +30,8 @@ export const run = async reporter => {
       let error;
       const then = Date.now();
       try {
-        await fn();
+        const promiseOrVoid = await fn();
+        await Promise.resolve(promiseOrVoid);
       } catch (err) {
         error = err;
       }

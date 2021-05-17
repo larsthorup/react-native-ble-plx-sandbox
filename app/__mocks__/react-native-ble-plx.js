@@ -1,5 +1,3 @@
-import * as assert from 'assert';
-
 import { State as BleState } from 'react-native-ble-plx';
 
 export const State = BleState;
@@ -10,13 +8,23 @@ export class BleManager {
   }
 
   reset() { // TODO: private
+    this.characteristicListener = {};
+    delete this.deviceDisconnectedListener;
+    delete this.deviceScanListener;
+    delete this.stateChangeListener;
     this.messageList = []; // TODO: recording
     this.nextMessageIndex = 0;
   }
 
+  error(message) { // TODO: private
+    // Note: exceptions might be swallowed by code-under-test, so we deliberately output the error here as well
+    console.error(message);
+    throw new Error(message);
+  }
+
   peekMessage() { // TODO: private
     if (this.nextMessageIndex >= this.messageList.length) {
-      assert.fail(`Expected ${this.nextMessageIndex} < ${this.messageList.length}`);
+      this.error(`Assertion failed: ${this.nextMessageIndex} < ${this.messageList.length}`);
     }
     const message = this.messageList[this.nextMessageIndex];
     return message;
@@ -25,20 +33,24 @@ export class BleManager {
   popMessage() { // TODO: private
     const message = this.peekMessage();
     ++this.nextMessageIndex;
-    // console.log(`popping: ${JSON.stringify(message)}`);
+    // console.trace(`popping: ${JSON.stringify(message)}`);
     return message;
   }
 
-  async expectCommand({ command, request }) { // TODO: private
+  expectCommand({ command, request }) { // TODO: private
+    const fromMessageIndex = this.nextMessageIndex;
     this.playUntilCommand(); // Note: flush any additionally recorded events
+    if (this.nextMessageIndex >= this.messageList.length) {
+      this.error(`BleManagerMock: missing record for "${command}" with request\n"${JSON.stringify(request)}" since index ${fromMessageIndex}`);
+    }
     const message = this.popMessage();
     const { response } = message;
     if (message.command !== command) {
-      console.error(`BleManagerMock: expected command "${command}" but found ${JSON.stringify(message)}`);
+      this.error(`BleManagerMock: missing record for "${command}" with request "${JSON.stringify(request)}", found ${JSON.stringify(message)} since index ${fromMessageIndex}`);
     }
     // TODO: use proper deep equal function
     if (JSON.stringify(message.request) !== JSON.stringify(request)) {
-      console.error(`BleManagerMock: expected command "${command}" to have request\n"${JSON.stringify(request)}" but found\n"${JSON.stringify(message.request)}"`);
+      this.error(`BleManagerMock: mismatched record for "${command}" with request\n"${JSON.stringify(request)}" but found\n"${JSON.stringify(message.request)}"`);
     }
     // console.log(`BleManagerMock: ${command} returning ${JSON.stringify(response)}`);
     return response;
@@ -56,24 +68,45 @@ export class BleManager {
       console.log(`(BleManagerMock: unused label: "${label}")`);
     } else if (type === 'event') {
       switch (event) {
-        case 'deviceScan':
+        case 'characteristic': {
+          const { characteristic, error } = args;
+          const { serviceUUID, characteristicUUID, value } = characteristic;
+          const characteristicListener = (this.characteristicListener[serviceUUID] || {})[characteristicUUID];
+          if (characteristicListener) {
+            try { // Note: report exceptions in handlers
+              const result = characteristicListener(error, { serviceUUID, uuid: characteristicUUID, value });
+              Promise.resolve(result).catch(console.error); // Note: handle async exception
+            } catch (err) {
+              console.error(err); // Note: handle sync exception
+            }
+          } else {
+            console.log(this.characteristicListener, { serviceUUID, characteristicUUID });
+            console.warn(`BleManagerMock: message cannot be delivered, as bleManager.monitorCharacteristicForDevice has not yet been called: ${JSON.stringify(message)} or subscription was removed`);
+          }
+          break;
+        }
+        case 'deviceScan': {
           const { deviceScanListener } = this;
           if (deviceScanListener) {
             const { device, error } = args;
             deviceScanListener(error, device);
+            // TODO: report sync/async exception in listener
           } else {
             console.warn(`BleManagerMock: message cannot be delivered, as bleManager.startDeviceScan has not yet been called: ${JSON.stringify(message)}`);
           }
           break;
-        case 'stateChange':
+        }
+        case 'stateChange': {
           const { stateChangeListener } = this;
           if (stateChangeListener) {
             const { powerState } = args;
             stateChangeListener(powerState);
+            // TODO: report sync/async exception in listener
           } else {
             console.warn(`BleManagerMock: message cannot be delivered, as bleManager.onStateChange has not yet been called: ${JSON.stringify(message)}`);
           }
           break;
+        }
         default:
           throw new Error(`BleManagerMock: Unrecognized event "${event}" in message ${JSON.stringify(message)}`);
       }
@@ -89,10 +122,9 @@ export class BleManager {
 
   playUntilCommand() { // TODO: extract to BleManagerMock
     try {
-      const fromMessageIndex = this.nextMessageIndex;
       while (true) {
         if (this.nextMessageIndex >= this.messageList.length) {
-          throw new Error(`BleManagerMock: command not found in recording since index ${fromMessageIndex}`);
+          break;
         }
         const message = this.peekMessage();
         if (message.type === 'command' && message.command) {
@@ -102,7 +134,7 @@ export class BleManager {
       }
     } catch (err) {
       console.error(err);
-      throw new Error(`BleManagerMock: failed to playUntilCommand(): ${err.message}`);
+      this.error(`BleManagerMock: failed to playUntilCommand(): ${err.message}`);
     }
   }
 
@@ -122,7 +154,23 @@ export class BleManager {
       }
     } catch (err) {
       console.error(err);
-      throw new Error(`BleManagerMock: failed to playUntil('${label}'): ${err.message}`);
+      this.error(`BleManagerMock: failed to playUntil('${label}'): ${err.message}`);
+    }
+  }
+
+  autoPlayEvents() { // TODO: extract to BleManagerMock
+    while (true) {
+      if (this.nextMessageIndex >= this.messageList.length) {
+        break;
+      }
+      const message = this.peekMessage();
+      if (message.type !== 'event') {
+        break;
+      }
+      if (!message.autoPlay) {
+        break;
+      }
+      this.playNext();
     }
   }
 
@@ -145,14 +193,57 @@ export class BleManager {
     this.deviceScanListener = listener;
   }
 
-  stopDeviceScan() { }
+  onDeviceDisconnected(id, listener) {
+    // TODO: error if listener alreay exists
+    this.expectCommand({ command: 'onDeviceDisconnected', request: { id } });
+    this.deviceDisconnectedListener = listener;
+  }
 
-  async connectToDevice(id) {
-    this.expectCommand({ command: 'connectToDevice', request: { id } });
+  async state() {
+    return this.expectCommand({ command: 'state', request: {} });
+  }
+
+  async isDeviceConnected(id) {
+    return this.expectCommand({ command: 'isDeviceConnected', request: { id } });
+  }
+
+  async devices(deviceIdentifiers) { // TODO: auto mock instead of manual mock
+    const deviceList = this.expectCommand({ command: 'devices', request: { deviceIdentifiers } });
+    return deviceList.map(({ id }) => ({
+      id,
+      // Note: convenience wrappers can safely be implemented here and not mocked
+      services: async () => this.servicesForDevice(id),
+      characteristicsForService: async (serviceUUID) => this.characteristicsForDevice(id, serviceUUID),
+    }));
+  }
+
+  async stopDeviceScan() {
+    // TODO: if this is called from an exception handler, it can mess up the error reporting if the exception was not expected
+    // this.expectCommand({ command: 'stopDeviceScan', request: {} });
+  }
+
+  async connectToDevice(id, options) {
+    const response = this.expectCommand({ command: 'connectToDevice', request: { id, options } });
+    return response;
+  }
+
+  async connectedDevices(serviceUUIDs) {
+    const response = this.expectCommand({ command: 'connectedDevices', request: { serviceUUIDs } });
+    return response;
+  }
+
+  async cancelDeviceConnection(id) {
+    const device = this.expectCommand({ command: 'cancelDeviceConnection', request: { id } });
+    return { id: device.id };
   }
 
   async discoverAllServicesAndCharacteristicsForDevice(id) {
     this.expectCommand({ command: 'discoverAllServicesAndCharacteristicsForDevice', request: { id } });
+  }
+
+  async requestMTUForDevice(id, mtu) {
+    const response = this.expectCommand({ command: 'requestMTUForDevice', request: { id, mtu } });
+    return response;
   }
 
   async servicesForDevice(id) {
@@ -160,9 +251,35 @@ export class BleManager {
     return response;
   }
 
-  async readCharacteristicForDevice(id, serviceUuid, characteristicUuid) {
-    const response = this.expectCommand({ command: 'readCharacteristicForDevice', request: { id, serviceUuid, characteristicUuid } });
+  async characteristicsForDevice(id, serviceUUID) {
+    const response = this.expectCommand({ command: 'characteristicsForDevice', request: { id, serviceUUID } });
     return response;
+  }
+
+  async readCharacteristicForDevice(id, serviceUUID, characteristicUUID) {
+    const response = this.expectCommand({ command: 'readCharacteristicForDevice', request: { id, serviceUUID, characteristicUUID } });
+    return response;
+  }
+
+  async monitorCharacteristicForDevice(id, serviceUUID, characteristicUUID, listener) {
+    this.expectCommand({ command: 'monitorCharacteristicForDevice', request: { id, serviceUUID, characteristicUUID } });
+    this.characteristicListener[serviceUUID] = this.characteristicListener[serviceUUID] || {};
+    if (this.characteristicListener[serviceUUID][characteristicUUID]) {
+      console.error(`Warning: missing call to monitorCharacteristicForDevice('${id}', '${serviceUUID}', '${characteristicUUID}).remove()`);
+    }
+    this.characteristicListener[serviceUUID][characteristicUUID] = listener;
+    this.autoPlayEvents(); // TODO: do this on all commands??
+    return {
+      remove: () => {
+        delete this.characteristicListener[serviceUUID][characteristicUUID];
+      },
+    };
+  }
+
+  async writeCharacteristicWithResponseForDevice(id, serviceUUID, characteristicUUID, value) {
+    this.expectCommand({ command: 'writeCharacteristicWithResponseForDevice', request: { id, serviceUUID, characteristicUUID, value } });
+    // TODO: response is characteristic
+    this.autoPlayEvents(); // TODO: do this on all commands??
   }
 
   async readRSSIForDevice(id) {

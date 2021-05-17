@@ -6,7 +6,7 @@ import { BleManagerCapture } from '../lib/bleManagerCapture';
 
 // TODO: before:  capture = bleManagerCapture('deviceList')
 const expectedDeviceNames = ['BeoPlay A1', 'UE Mobile Boombox', 'Jamstack', 'JBL Charge 4']; //, '[TV] mus-UE40JU7005']; //, '4A:27:91:E1:6A:F7']; // , 'vívoactive3'];
-console.log('Looking for speakers', expectedDeviceNames);
+// console.log('Looking for speakers', expectedDeviceNames);
 const deviceNameIn = deviceNames => device => (deviceNames.indexOf(device.name) >= 0 || deviceNames.indexOf(device.id) >= 0);
 const bleManager = new BleManager();
 const bleManagerCapture = new BleManagerCapture(bleManager);
@@ -14,25 +14,23 @@ bleManagerCapture.deviceCriteria = deviceNameIn(expectedDeviceNames);
 bleManagerCapture.recordDevice = { id: '12-34-56-78-9A-BC', name: 'The Speaker' };
 let device;
 
-console.log('Telefonen spørger om adgang til Bluetooth');
+console.log('On phone: please allow location permission');
 
 it('should receive scan result', async () => {
-  // TODO: device = await expectDeviceScanResult({criteria: deviceNameEquals(expectedDeviceName)})
   device = await new Promise((resolve, reject) => {
     bleManagerCapture.onStateChange((powerState) => {
       if (powerState === BleState.PoweredOn) {
         const uuidList = null;
         const scanOptions = null;
         bleManagerCapture.startDeviceScan(uuidList, scanOptions, (error, d) => {
-          console.log('startDeviceScan', error, d.id, d.name);
+          // console.log('startDeviceScan', error, d.id, d.name);
           if (!error && deviceNameIn(expectedDeviceNames)(d)) {
             resolve(d);
           } else if (error) {
             console.log('error in startDeviceScan', error);
             reject(error);
           } else {
-            console.log('other device', d.name, d);
-            reject('other device ' + d.name);
+            console.log(`(unexpected device "${d.name}", ignoring)`);
           }
         });
       } else if (powerState === BleState.PoweredOff) {

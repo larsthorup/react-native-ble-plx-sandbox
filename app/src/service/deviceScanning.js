@@ -18,6 +18,8 @@ export const deviceScanning = async (dispatch, getState) => {
             }
             // Note: for now, skip devices with no name in scan response
             if (device.name) {
+              // const { id, name, localName, manufacturerData, rssi } = device;
+              // console.log({ id, name, localName, manufacturerData, rssi });
               dispatch(bleDeviceScanned({ device }));
             }
             // TODO: remove device

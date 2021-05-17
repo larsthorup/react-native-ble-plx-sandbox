@@ -32,3 +32,7 @@ TBD
 ```
 npm run android:log
 ```
+
+## Create capture app project
+
+- add permissions in android/app/src/main/AndroidManifest.xml
