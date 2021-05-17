@@ -1,15 +1,20 @@
 export class BleManagerCapture {
-  constructor(bm) {
-    this.bleManager = bm;
+  constructor(bleManager, name) {
+    this.bleManager = bleManager;
+    this.name = name;
+    console.log(`BleCapture: ${JSON.stringify({ event: 'init', name: this.name })}`);
   }
   record(item) { // TODO: private
-    console.log(`BleCapture: ${JSON.stringify(item)}`);
+    console.log(`BleRecord: ${JSON.stringify(item)}`);
   }
   exclude(item) { // TODO: private
     console.log(`(excluding ${JSON.stringify(item)})`);
   }
   label(label) { // TODO: extract to BleManagerCaptureControl
     this.record({ type: 'label', label });
+  }
+  save() { // TODO: extract to BleManagerCaptureControl
+    console.log(`BleCapture: ${JSON.stringify({ event: 'save', name: this.name })}`);
   }
   // TODO: BleManagerCaptureControl.pushRecordValue()
   // TODO: BleManagerCaptureControl.mapRecordDeviceId(actualDeviceId, recordDeviceId)

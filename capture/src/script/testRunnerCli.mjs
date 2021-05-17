@@ -32,8 +32,9 @@ await exec(`adb shell am start -n '${process.env.PACKAGE_NAME}/.MainActivity'`);
 
 // wait for event: complete
 const testRunnerPrefix = 'TestRunner: ';
+const bleRecordPrefix = 'BleRecord: ';
 const bleCapturePrefix = 'BleCapture: ';
-const bleRecording = [];
+let bleRecording = [];
 await new Promise((resolve) => {
   lineTransformer(logcat.stdout).on('line', (line) => {
     if (line.startsWith(testRunnerPrefix)) {
@@ -45,31 +46,45 @@ await new Promise((resolve) => {
           resolve();
           break;
         case 'fail':
-          console.log(`${chalk.red('X')} ${name}: ${message} (${duration} ms)`);
+          console.log(`  ${chalk.red('X')} ${name}: ${message} (${duration} ms)`);
           break;
         case 'pass':
-          console.log(`${chalk.green('√')} ${name} (${duration} ms)`);
+          console.log(`  ${chalk.green('√')} ${name} (${duration} ms)`);
           break;
         case 'start':
           console.log('Running tests...');
           break;
+        case 'suite:complete':
+          console.log(`  (${duration} ms)`)
+          break;
+        case 'suite:start':
+          console.log(`> ${name}`);
+          break;
       }
-    } else if (line.startsWith(bleCapturePrefix)) {
-      const bleRecord = JSON.parse(line.substr(bleCapturePrefix.length));
+    } else if (line.startsWith(bleRecordPrefix)) {
+      const bleRecord = JSON.parse(line.substr(bleRecordPrefix.length));
       bleRecording.push(bleRecord);
+    } else if (line.startsWith(bleCapturePrefix)) {
+      const { event, name } = JSON.parse(line.substr(bleCapturePrefix.length));
+      switch (event) {
+        case 'init':
+          bleRecording = [];
+          break;
+        case 'save':
+          const capturePath = `artifact/${name}.capture.json`;
+          fs.writeFileSync(capturePath, JSON.stringify(bleRecording, null, 2));
+          console.log(`(BLE capture file saved in ${capturePath}: ${bleRecording.length} records)`);
+          break;
+      }
     } else if (line.startsWith('--------- beginning of ')) {
       // skip
     } else if (line.startsWith(`Running "${appName}" with `)) {
       // skip
     } else {
-      console.log(line);
+      console.log(`    ${chalk.grey(line)}`);
     }
   });
 });
-const captureName = 'deviceList'; // TODO: configure per capture test suite
-const capturePath = `artifact/${captureName}.capture.json`;
-fs.writeFileSync(capturePath, JSON.stringify(bleRecording, null, 2));
-console.log(`BLE capture file saved in ${capturePath} (${bleRecording.length} records)`);
 
 // stop adb logcat
 logcat.kill();
