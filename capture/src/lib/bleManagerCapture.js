@@ -113,6 +113,18 @@ export class BleManagerCapture {
     });
     return response;
   }
+  async readRSSIForDevice(deviceId) {
+    const response = await this.bleManager.readRSSIForDevice(deviceId);
+    const { id } = this.recordDevice;
+    const rssi = this.recordRssi !== undefined ? this.recordRssi : response.rssi;
+    this.record({
+      type: 'command',
+      command: 'readRSSIForDevice',
+      request: { id },
+      response: { id, rssi },
+    });
+    return response;
+  }
   async connectToDevice(deviceId, options) {
     const device = await this.bleManager.connectToDevice(deviceId);
     const { id } = this.recordDevice;

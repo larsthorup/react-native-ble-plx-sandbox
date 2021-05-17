@@ -27,6 +27,7 @@ export const devicePolling = ({ id }) => async (dispatch, getState) => {
       }, 500); // TODO: use monitor characteristic for battery
     }
   } catch (err) {
+    // TODO: report error to user
     console.error('devicePolling', err);
   }
 };

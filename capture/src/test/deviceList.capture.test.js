@@ -60,4 +60,13 @@ it('should read battery level', async () => {
   assert.ok(batteryLevel <= 100, `Expected ${batteryLevel} <= 100`);
 });
 
+it('should read signal strength', async () => {
+  const { id } = device;
+  bleManagerCapture.recordRssi = -42;
+  const { rssi } = await bleManagerCapture.readRSSIForDevice(id);
+  console.log(`(actual rssi = ${rssi})`);
+  assert.ok(rssi < 0, `Expected ${rssi} < 0`);
+  assert.ok(rssi >= -127, `Expected ${rssi} >= -127`);
+});
+
 // TODO: after: capture.stop()

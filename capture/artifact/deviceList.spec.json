@@ -202,5 +202,16 @@
     "response": {
       "value": "Kg=="
     }
+  },
+  {
+    "type": "command",
+    "command": "readRSSIForDevice",
+    "request": {
+      "id": "12-34-56-78-9A-BC"
+    },
+    "response": {
+      "id": "12-34-56-78-9A-BC",
+      "rssi": -42
+    }
   }
 ]

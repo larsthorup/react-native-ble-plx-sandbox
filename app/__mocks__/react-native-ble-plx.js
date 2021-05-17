@@ -283,6 +283,7 @@ export class BleManager {
   }
 
   async readRSSIForDevice(id) {
-    return { rssi: -42 }; // TODO: use capture
+    const response = this.expectCommand({ command: 'readRSSIForDevice', request: { id } });
+    return response;
   }
 }

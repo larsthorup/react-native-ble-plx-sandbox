@@ -1,13 +1,13 @@
 import React from 'react';
 
-import DeviceList from './DeviceList';
+import DeviceListScreen from './DeviceListScreen';
 import { configureStore } from '../state';
 import { withStore } from '../lib/withStore';
 
 const store = configureStore();
 
 const App = () => {
-  return withStore(<DeviceList />, store);
+  return withStore(<DeviceListScreen />, store);
 };
 
 export default App;
