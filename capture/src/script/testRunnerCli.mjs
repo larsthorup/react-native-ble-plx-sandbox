@@ -4,6 +4,7 @@ import readline from 'readline';
 import { promisify } from 'util';
 
 import chalk from 'chalk';
+import 'dotenv/config';
 
 const exec = promisify(cp.exec);
 const { spawn } = cp;
@@ -20,14 +21,14 @@ const logcat = spawn('adb', ['logcat', '-v', 'raw', '-s', 'ReactNativeJS:V']);
 
 // stop app, if already running
 try {
-  await exec('adb shell pm clear com.xpqf.rnblesandboxcapture'); // TODO: configure
+  await exec(`adb shell pm clear ${process.env.PACKAGE_NAME}`);
 } catch (error) {
   console.log('(failed to clear app, continuing)');
 }
 
 // launch 
 console.log('Launching test runner on device...');
-await exec(`adb shell am start -n 'com.xpqf.rnblesandboxcapture/.MainActivity'`); // TODO: configure
+await exec(`adb shell am start -n '${process.env.PACKAGE_NAME}/.MainActivity'`);
 
 // wait for event: complete
 const testRunnerPrefix = 'TestRunner: ';
