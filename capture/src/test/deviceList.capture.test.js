@@ -21,6 +21,15 @@ describe('deviceList', () => {
     bleManagerCapture = new BleManagerCapture(bleManager, 'deviceList');
     bleManagerCapture.deviceCriteria = deviceNameIn(expectedDeviceNames);
     bleManagerCapture.recordDevice = { id: '12-34-56-78-9A-BC', name: 'The Speaker' };
+    // TODO: share code with bleConstants
+    bleManagerCapture.serviceNameMap = {
+      [batteryServiceUuid]: 'Battery Service',
+    };
+    bleManagerCapture.characteristicNameMap = {
+      [batteryServiceUuid]: {
+        [batteryLevelCharacteristicUuid]: 'Battery Level',
+      },
+    };
   });
 
   it('should receive scan result', async () => {

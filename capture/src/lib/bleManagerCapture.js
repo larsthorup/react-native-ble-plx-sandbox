@@ -22,6 +22,17 @@ export class BleManagerCapture {
   exclude(item) { // TODO: private
     console.log(`(excluding ${JSON.stringify(item)})`);
   }
+  debugFor({ serviceUUID, characteristicUUID, value }) { // TODO: private
+    const serviceName = this.serviceNameMap[serviceUUID];
+    const characteristicName = (this.characteristicNameMap[serviceUUID] || {})[characteristicUUID];
+    return {
+      debug: {
+        ...(serviceName && { serviceUUID: serviceName }),
+        ...(characteristicName && { characteristicUUID: characteristicName }),
+        ...(value !== undefined && { value: formattedFromBase64(value) }),
+      },
+    };
+  }
   label(label) { // TODO: extract to BleManagerCaptureControl
     this.record({ type: 'label', label });
   }
@@ -253,15 +264,13 @@ export class BleManagerCapture {
       command: 'readCharacteristicForDevice',
       request: {
         id,
-        serviceUUID, // TODO: include name of service from configured service map for debugging purporses
-        characteristicUUID, // TODO: include name of characteristic from configured service map for debugging purposes
+        serviceUUID,
+        characteristicUUID,
       },
       response: {
-        value, // TODO: include base64 decoded value for debugging purposes (as Buffer and optionally as valid ascii)
+        value,
       },
-      debug: {
-        value: formattedFromBase64(value),
-      },
+      ...(this.debugFor({ serviceUUID, characteristicUUID, value })),
     });
     return characteristic;
   }
@@ -276,15 +285,16 @@ export class BleManagerCapture {
         this.record({
           type: 'event',
           event: 'characteristic',
-          autoPlay: true, // TODO: only for transfer service??
+          autoPlay: true,
           args: {
             characteristic: {
-              serviceUUID, // TODO: include name of service from configured service map for debugging purporses
-              characteristicUUID, // TODO: include name of characteristic from configured service map for debugging purporses
-              value, // TODO: include base64 decoded value for debugging purposes (as Buffer and optionally as valid ascii)
+              serviceUUID,
+              characteristicUUID,
+              value,
             },
             error,
           },
+          ...(this.debugFor({ serviceUUID, characteristicUUID, value })),
         });
         listener(error, characteristic);
       }
@@ -294,9 +304,10 @@ export class BleManagerCapture {
       command: 'monitorCharacteristicForDevice',
       request: {
         id,
-        serviceUUID, // TODO: include name of service from configured service map for debugging purporses
-        characteristicUUID, // TODO: include name of characteristic from configured service map for debugging purposes
+        serviceUUID,
+        characteristicUUID,
       },
+      ...(this.debugFor({ serviceUUID, characteristicUUID })),
     });
     return subscription;
   }
@@ -308,10 +319,11 @@ export class BleManagerCapture {
       command: 'writeCharacteristicWithResponseForDevice',
       request: {
         id,
-        serviceUUID, // TODO: include name of service from configured service map for debugging purporses
-        characteristicUUID, // TODO: include name of characteristic from configured service map for debugging purposes
-        value, // TODO: include base64 decoded value for debugging purposes (as Buffer and optionally as valid ascii)
+        serviceUUID,
+        characteristicUUID,
+        value,
       },
+      ...(this.debugFor({ serviceUUID, characteristicUUID, value })),
     });
     return response;
   }
