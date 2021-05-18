@@ -1,3 +1,15 @@
+import * as util from 'util';
+import { asciiFromBase64, bufferFromBase64, isAsciiFromBase64 } from './base64';
+
+const formattedFromBase64 = (value) => {
+  const valueBufferFormatted = util.format(bufferFromBase64(value));
+  if (isAsciiFromBase64(value)) {
+    return `${valueBufferFormatted} '${asciiFromBase64(value)}'`;
+  } else {
+    return valueBufferFormatted;
+  }
+};
+
 export class BleManagerCapture {
   constructor(bleManager, name) {
     this.bleManager = bleManager;
@@ -246,6 +258,9 @@ export class BleManagerCapture {
       },
       response: {
         value, // TODO: include base64 decoded value for debugging purposes (as Buffer and optionally as valid ascii)
+      },
+      debug: {
+        value: formattedFromBase64(value),
       },
     });
     return characteristic;

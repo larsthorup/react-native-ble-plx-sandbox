@@ -201,6 +201,9 @@
     },
     "response": {
       "value": "Kg=="
+    },
+    "debug": {
+      "value": "<Buffer 2a> '*'"
     }
   },
   {
