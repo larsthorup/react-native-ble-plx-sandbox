@@ -1,5 +1,7 @@
 import { BleManager, State as BleState } from 'react-native-ble-plx';
-import { after, assert, before, describe, it } from '../lib/testRunner';
+
+import * as assert from '../lib/assert';
+import { after, before, describe, it } from '../lib/testRunner';
 import { batteryLevelCharacteristicUuid, batteryServiceUuid } from '../lib/bleConstants';
 import { base64FromUint8, uint8FromBase64 } from '../lib/base64';
 import { BleManagerCapture } from '../lib/bleManagerCapture';

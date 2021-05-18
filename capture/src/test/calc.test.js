@@ -1,10 +1,5 @@
-import {
-  after,
-  assert,
-  before,
-  describe,
-  it,
-} from '../lib/testRunner';
+import * as assert from '../lib/assert';
+import { after, before, describe, it } from '../lib/testRunner';
 
 describe('calc', () => {
   let count;

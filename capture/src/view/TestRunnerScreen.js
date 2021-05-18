@@ -6,6 +6,7 @@ const TestRunnerScreen = () => {
   const [isRunning, setIsRunning] = useState(false);
   const [progress, setProgress] = useState([]);
   useEffect(() => {
+    // TODO: extract TestRunnerReporter (MochaProtocol?)
     const log = runnerEvent => {
       console.log(`TestRunner: ${JSON.stringify(runnerEvent)}`);
       setProgress(prev => prev.concat([runnerEvent]));

@@ -1,84 +1,79 @@
-import { PermissionsAndroid } from 'react-native';
+class Suite {
+  constructor(name) {
+    this.name = name;
+    this.testList = [];
+    this.beforeList = [];
+    this.afterList = [];
+  }
+}
 
 const suiteList = [];
-let currentSuite;
+const globalSuite = new Suite('(global)');
+let currentSuite = globalSuite;
 
 export const describe = (name, fn) => {
-  if (currentSuite) { throw new Error('testRunner: nested "describe" not supported yet'); }
-  const suite = {
-    name,
-    testList: [],
-  };
+  if (currentSuite !== globalSuite) { throw new Error('testRunner: nested "describe" not supported yet'); }
+  const suite = new Suite(name);
   suiteList.push(suite);
   currentSuite = suite;
   fn();
-  currentSuite = null;
+  currentSuite = globalSuite;
 };
 
 export const it = (name, fn) => {
-  currentSuite.testList.push({ name, fn });
+  currentSuite.testList.push({ fn, name });
 };
 
 export const before = (fn) => {
-  // TODO: actually run before
-  it('before', fn); // TODO: better name if multiple before
+  currentSuite.beforeList.push({ fn, name: 'before' });
 };
 
 export const after = (fn) => {
-  // TODO: actually run after
-  it('after', fn); // TODO: better name if multiple after
+  currentSuite.afterList.push({ fn, name: 'after' });
 };
 
-export const assert = {
-  ok: (actual, message) => {
-    if (!actual) {
-      throw new Error(message);
-    }
-  },
-  strictEqual: (actual, expected) => {
-    if (actual !== expected) {
-      throw new Error(`Expected ${actual} to equal ${expected}`);
-    }
-  },
-};
-
-export const run = async reporter => {
+export const run = async (reporter) => {
   reporter.onStart();
-  // TODO: move somewhere else
-  console.log('On phone: please allow location permission');
-  const permissionResult = await PermissionsAndroid.request(
-    PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
-  );
-  if (permissionResult === PermissionsAndroid.RESULTS.GRANTED) {
-    for (const suite of suiteList) {
-      const { name } = suite;
-      const then = Date.now();
-      reporter.onSuiteStart({ name });
-      await runSuite({ reporter, suite });
-      const duration = Date.now() - then;
-      reporter.onSuiteComplete({ duration, name });
-    }
+  const suites = [];
+  await runTestList({ reporter, suites, testList: globalSuite.beforeList });
+  for (const suite of suiteList) {
+    const { name } = suite;
+    const then = Date.now();
+    reporter.onSuiteStart({ name });
+    await runSuite({ reporter, suite });
+    const duration = Date.now() - then;
+    reporter.onSuiteComplete({ duration, name });
   }
+  await runTestList({ reporter, suites, testList: globalSuite.afterList });
   reporter.onComplete();
 };
 
 const runSuite = async ({ reporter, suite }) => {
-  const { testList } = suite;
   const suites = [suite.name];
+  await runTestList({ reporter, suites, testList: suite.beforeList });
+  await runTestList({ reporter, suites, testList: suite.testList });
+  await runTestList({ reporter, suites, testList: suite.afterList });
+};
+
+const runTestList = async ({ reporter, suites, testList }) => {
   for (const { name, fn } of testList) {
-    let error;
-    const then = Date.now();
-    try {
-      const promiseOrVoid = await fn();
-      await Promise.resolve(promiseOrVoid);
-    } catch (err) {
-      error = err;
-    }
-    const duration = Date.now() - then;
-    if (error) {
-      reporter.onFail({ duration, error, name, suites });
-    } else {
-      reporter.onPass({ duration, name, suites });
-    }
+    await runTest({ fn, name, reporter, suites });
+  }
+};
+
+const runTest = async ({ fn, name, reporter, suites }) => {
+  let error;
+  const then = Date.now();
+  try {
+    const promiseOrVoid = await fn();
+    await Promise.resolve(promiseOrVoid);
+  } catch (err) {
+    error = err;
+  }
+  const duration = Date.now() - then;
+  if (error) {
+    reporter.onFail({ duration, error, name, suites });
+  } else {
+    reporter.onPass({ duration, name, suites });
   }
 };
