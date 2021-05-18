@@ -1,36 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import { SafeAreaView, StatusBar, StyleSheet, Text } from 'react-native';
 import { run } from '../lib/testRunner';
+import { TestRunnerEventReporter } from '../lib/TestRunnerEventReporter';
 
 const TestRunnerScreen = () => {
   const [isRunning, setIsRunning] = useState(false);
   const [progress, setProgress] = useState([]);
   useEffect(() => {
-    // TODO: extract TestRunnerReporter (MochaProtocol?)
     const log = runnerEvent => {
       console.log(`TestRunner: ${JSON.stringify(runnerEvent)}`);
       setProgress(prev => prev.concat([runnerEvent]));
     };
-    const reporter = {
-      onComplete: () => {
-        log({ event: 'complete' });
-      },
-      onFail: ({ duration, error, name, suites }) => {
-        log({ duration, event: 'fail', name, message: error.message, suites });
-      },
-      onPass: ({ duration, name }) => {
-        log({ duration, event: 'pass', name });
-      },
-      onStart: () => {
-        log({ event: 'start' });
-      },
-      onSuiteComplete: ({ duration, name }) => {
-        log({ duration, event: 'suite:complete', name });
-      },
-      onSuiteStart: ({ name }) => {
-        log({ event: 'suite:start', name });
-      },
-    };
+    const reporter = new TestRunnerEventReporter(log);
     if (!isRunning) {
       setIsRunning(true);
       run(reporter);
