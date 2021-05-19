@@ -1,22 +1,20 @@
-import { BleManager, State as BleState } from 'react-native-ble-plx';
+import { State as BleState } from 'react-native-ble-plx';
 import { after, before, describe, it } from '../lib/testRunner';
-import { BleManagerCapture } from '../lib/bleManagerCapture';
+import { BleManagerCaptureControl } from '../lib/bleManagerCapture';
 
 const captureName = 'deviceList-empty';
 
 describe(captureName, () => {
   let bleManager;
-  let bleManagerCapture;
+  let captureControl;
   const deviceMap = {
     expected: {}, // TODO: default value?
   };
 
   before(() => {
     // console.log('Looking for speakers', expectedDeviceNames);
-    // TODO: simplify to bleManagerCapture = new BleManagerCapture('deviceList'); { bleManager } = bleManagerCapture;
-    bleManager = new BleManager();
-    bleManagerCapture = new BleManagerCapture(bleManager, { captureName, deviceMap });
-    bleManagerCapture.deviceCriteria = () => false;
+    captureControl = new BleManagerCaptureControl({ captureName, deviceMap });
+    bleManager = captureControl.bleManagerCapture;
   });
 
   it('should receive no scan results', async () => {
@@ -24,11 +22,11 @@ describe(captureName, () => {
     await new Promise((resolve, reject) => {
       setTimeout(resolve, timeout);
       // TODO: extract to shared test code, or share with app code
-      bleManagerCapture.onStateChange((powerState) => {
+      bleManager.onStateChange((powerState) => {
         if (powerState === BleState.PoweredOn) {
           const uuidList = null;
           const scanOptions = null;
-          bleManagerCapture.startDeviceScan(uuidList, scanOptions, (error, d) => {
+          bleManager.startDeviceScan(uuidList, scanOptions, (error, d) => {
             if (!error) {
               reject(new Error(`Expected no scan result, but got "${d.name}"`));
             } else {
@@ -42,12 +40,10 @@ describe(captureName, () => {
         }
       }, true);
     });
-    bleManagerCapture.label('scanned');
+    captureControl.label('scanned');
   });
 
   after(() => {
-    // TODO: simplify to bleManagerCapture.close();
-    bleManager.destroy();
-    bleManagerCapture.save();
+    captureControl.close();
   });
 });
