@@ -11,16 +11,17 @@ const formattedFromBase64 = (value) => {
 };
 
 export class BleManagerCapture {
-  constructor(bleManager, name) {
+  constructor(bleManager, { captureName, deviceMap }) {
     this.bleManager = bleManager;
-    this.name = name;
-    console.log(`BleCapture: ${JSON.stringify({ event: 'init', name: this.name })}`);
+    this.captureName = captureName;
+    this.deviceMap = deviceMap;
+    console.log(`BleCapture: ${JSON.stringify({ event: 'init', name: this.captureName })}`);
   }
   record(item) { // TODO: private
     console.log(`BleRecord: ${JSON.stringify(item)}`);
   }
   exclude(item) { // TODO: private
-    console.log(`(excluding ${JSON.stringify(item)})`);
+    // console.log(`(excluding ${JSON.stringify(item)})`);
   }
   debugFor({ serviceUUID, characteristicUUID, value }) { // TODO: private
     const serviceName = this.serviceNameMap[serviceUUID];
@@ -33,11 +34,21 @@ export class BleManagerCapture {
       },
     };
   }
+  recordDevice(deviceId) { // TODO: private
+    const { recordId: id } = this.deviceMap.expected[deviceId];
+    return {
+      id,
+      ...(this.deviceMap.record[id]),
+    };
+  }
   label(label) { // TODO: extract to BleManagerCaptureControl
     this.record({ type: 'label', label });
   }
   save() { // TODO: extract to BleManagerCaptureControl
-    console.log(`BleCapture: ${JSON.stringify({ event: 'save', name: this.name })}`);
+    console.log(`BleCapture: ${JSON.stringify({ event: 'save', name: this.captureName })}`);
+  }
+  isExpected(device) { // TODO: extract to BleManagerCaptureControl
+    return Boolean(Object.keys(this.deviceMap.expected[device.id]));
   }
   // TODO: BleManagerCaptureControl.pushRecordValue()
   // TODO: BleManagerCaptureControl.mapRecordDeviceId(actualDeviceId, recordDeviceId)
@@ -83,35 +94,39 @@ export class BleManagerCapture {
         });
         listener(error, device);
         const { message } = error;
-      } else if (this.deviceCriteria(device)) {
-        const { id, localName, name } = this.recordDevice;
-        const { manufacturerData } = device;
-        this.record({
-          type: 'event',
-          event: 'deviceScan',
-          args: {
-            device: { id, localName, manufacturerData, name },
-          },
-        });
-        listener(error, device);
-      } else {
-        if (this.reported.indexOf(device.id) < 0) {
-          console.log(`(ignoring device with id ${device.id} named ${device.name}. ManufacturerData: ${device.manufacturerData})`);
-          this.reported.push(device.id);
-          // comment out the three next lines if they are too noisy
-          // const devReport = {...device};
-          // Object.keys(devReport).forEach(key => { if (key.startsWith('_')) { delete devReport[key]; }});
-          // console.log(devReport);
+      } else if (device) {
+        const deviceExpected = this.deviceMap.expected[device.id];
+        if (deviceExpected) {
+          const { recordId: id } = deviceExpected;
+          const { localName, name } = this.deviceMap.record[id];
+          const { manufacturerData } = device;
+          this.record({
+            type: 'event',
+            event: 'deviceScan',
+            args: {
+              device: { id, localName, manufacturerData, name },
+            },
+          });
+          listener(error, device);
+        } else {
+          if (this.reported.indexOf(device.id) < 0) {
+            console.log(`(ignoring device with id ${device.id} named ${device.name}. ManufacturerData: ${device.manufacturerData})`);
+            this.reported.push(device.id);
+            // comment out the three next lines if they are too noisy
+            // const devReport = {...device};
+            // Object.keys(devReport).forEach(key => { if (key.startsWith('_')) { delete devReport[key]; }});
+            // console.log(devReport);
+          }
+          // Note: exclude unwanted scan responses from capture file for now as they are usually quite noisy
+          const { id, name } = device;
+          this.exclude({
+            type: 'event',
+            event: 'deviceScan',
+            args: {
+              device: { id, name },
+            },
+          });
         }
-        // Note: hide unwanted scan responses for now as they are usually quite noisy
-        // const { id, name } = device;
-        // this.exclude({
-        //   type: 'event'
-        //   event: 'deviceScan',
-        //   args: {
-        //     device: { id, name },
-        //   }
-        // });
       }
     });
     this.record({
@@ -132,7 +147,7 @@ export class BleManagerCapture {
   }
   async isDeviceConnected(deviceId) {
     const response = await this.bleManager.isDeviceConnected(deviceId);
-    const { id } = this.recordDevice;
+    const { id } = this.recordDevice(deviceId);
     this.record({
       type: 'command',
       command: 'isDeviceConnected',
@@ -143,7 +158,7 @@ export class BleManagerCapture {
   }
   async readRSSIForDevice(deviceId) {
     const response = await this.bleManager.readRSSIForDevice(deviceId);
-    const { id } = this.recordDevice;
+    const { id } = this.recordDevice(deviceId);
     const rssi = this.recordRssi !== undefined ? this.recordRssi : response.rssi;
     this.record({
       type: 'command',
@@ -155,7 +170,7 @@ export class BleManagerCapture {
   }
   async connectToDevice(deviceId, options) {
     const device = await this.bleManager.connectToDevice(deviceId);
-    const { id } = this.recordDevice;
+    const { id } = this.recordDevice(deviceId);
     this.record({
       type: 'command',
       command: 'connectToDevice',
@@ -166,7 +181,7 @@ export class BleManagerCapture {
   }
   async connectedDevices(serviceUUIDs) {
     const devices = await this.bleManager.connectedDevices(serviceUUIDs);
-    const { id } = this.recordDevice;
+    const { id } = this.recordDevice(devices[0].id); // TODO: handle multiple devices
     this.record({
       type: 'command',
       command: 'connectedDevices',
@@ -183,7 +198,7 @@ export class BleManagerCapture {
         // TODO: invoke listener
       }
     );
-    const { id } = this.recordDevice;
+    const { id } = this.recordDevice(deviceId);
     this.record({
       type: 'command',
       command: 'onDeviceDisconnected',
@@ -195,7 +210,7 @@ export class BleManagerCapture {
   }
   async requestMTUForDevice(deviceId, mtu) {
     const device = await this.bleManager.requestMTUForDevice(deviceId, mtu);
-    const { id } = this.recordDevice;
+    const { id } = this.recordDevice(deviceId);
     this.record({
       type: 'command',
       command: 'requestMTUForDevice',
@@ -209,7 +224,7 @@ export class BleManagerCapture {
   }
   async discoverAllServicesAndCharacteristicsForDevice(deviceId) {
     await this.bleManager.discoverAllServicesAndCharacteristicsForDevice(deviceId);
-    const { id } = this.recordDevice;
+    const { id } = this.recordDevice(deviceId);
     this.record({
       type: 'command',
       command: 'discoverAllServicesAndCharacteristicsForDevice',
@@ -218,7 +233,7 @@ export class BleManagerCapture {
   }
   async devices(deviceIdentifiers) {
     const deviceList = await this.bleManager.devices(deviceIdentifiers);
-    const { id } = this.recordDevice; // TODO: handle when there are more than one device
+    const { id } = this.recordDevice(deviceList[0].id); // TODO: handle when there are more than one device
     this.record({
       type: 'command',
       command: 'devices',
@@ -231,7 +246,7 @@ export class BleManagerCapture {
   }
   async servicesForDevice(deviceId) {
     const services = await this.bleManager.servicesForDevice(deviceId);
-    const { id } = this.recordDevice;
+    const { id } = this.recordDevice(deviceId);
     this.record({
       type: 'command',
       command: 'servicesForDevice',
@@ -242,7 +257,7 @@ export class BleManagerCapture {
   }
   async characteristicsForDevice(deviceId, serviceUUID) {
     const characteristics = await this.bleManager.characteristicsForDevice(deviceId, serviceUUID);
-    const { id } = this.recordDevice;
+    const { id } = this.recordDevice(deviceId);
     this.record({
       type: 'command',
       command: 'characteristicsForDevice',
@@ -257,7 +272,7 @@ export class BleManagerCapture {
       serviceUUID,
       characteristicUUID,
     );
-    const { id } = this.recordDevice;
+    const { id } = this.recordDevice(deviceId);
     const value = this.recordValue !== undefined ? this.recordValue : characteristic.value;
     this.record({
       type: 'command',
@@ -275,7 +290,7 @@ export class BleManagerCapture {
     return characteristic;
   }
   async monitorCharacteristicForDevice(deviceId, serviceUUID, characteristicUUID, listener) {
-    const { id } = this.recordDevice;
+    const { id } = this.recordDevice(deviceId);
     const subscription = await this.bleManager.monitorCharacteristicForDevice(
       deviceId,
       serviceUUID,
@@ -313,7 +328,7 @@ export class BleManagerCapture {
   }
   async writeCharacteristicWithResponseForDevice(deviceId, serviceUUID, characteristicUUID, value) {
     const response = await this.bleManager.writeCharacteristicWithResponseForDevice(deviceId, serviceUUID, characteristicUUID, value);
-    const { id } = this.recordDevice;
+    const { id } = this.recordDevice(deviceId);
     this.record({
       type: 'command',
       command: 'writeCharacteristicWithResponseForDevice',

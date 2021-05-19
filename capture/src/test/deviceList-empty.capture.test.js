@@ -2,15 +2,20 @@ import { BleManager, State as BleState } from 'react-native-ble-plx';
 import { after, before, describe, it } from '../lib/testRunner';
 import { BleManagerCapture } from '../lib/bleManagerCapture';
 
-describe('deviceList-empty', () => {
+const captureName = 'deviceList-empty';
+
+describe(captureName, () => {
   let bleManager;
   let bleManagerCapture;
+  const deviceMap = {
+    expected: {}, // TODO: default value?
+  };
 
   before(() => {
     // console.log('Looking for speakers', expectedDeviceNames);
     // TODO: simplify to bleManagerCapture = new BleManagerCapture('deviceList'); { bleManager } = bleManagerCapture;
     bleManager = new BleManager();
-    bleManagerCapture = new BleManagerCapture(bleManager, 'deviceList-empty');
+    bleManagerCapture = new BleManagerCapture(bleManager, { captureName, deviceMap });
     bleManagerCapture.deviceCriteria = () => false;
   });
 

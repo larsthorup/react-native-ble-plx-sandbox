@@ -6,21 +6,31 @@ import { batteryLevelCharacteristicUuid, batteryServiceUuid } from '../lib/bleCo
 import { base64FromUint8, uint8FromBase64 } from '../lib/base64';
 import { BleManagerCapture } from '../lib/bleManagerCapture';
 
-const deviceNameIn = deviceNames => device => (deviceNames.indexOf(device.name) >= 0 || deviceNames.indexOf(device.id) >= 0);
+const captureName = 'deviceList';
 
-describe('deviceList', () => {
+describe(captureName, () => {
   let bleManager;
   let bleManagerCapture;
   let device;
-  const expectedDeviceNames = ['BeoPlay A1', 'UE Mobile Boombox', 'Jamstack', 'JBL Charge 4']; //, '[TV] mus-UE40JU7005']; //, '4A:27:91:E1:6A:F7']; // , 'vívoactive3'];
+  const deviceMap = {
+    expected: {
+      '00:12:6F:BA:A7:74': {
+        name: 'BeoPlay A1',
+        recordId: '12-34-56-78-9A-BC',
+      },
+    },
+    record: {
+      '12-34-56-78-9A-BC': {
+        name: 'The Speaker',
+      },
+    },
+  };
 
   before(() => {
-    // console.log('Looking for speakers', expectedDeviceNames);
+    // console.log('Looking for speakers', deviceMap.expected);
     // TODO: simplify to bleManagerCapture = new BleManagerCapture('deviceList'); { bleManager } = bleManagerCapture;
     bleManager = new BleManager();
-    bleManagerCapture = new BleManagerCapture(bleManager, 'deviceList');
-    bleManagerCapture.deviceCriteria = deviceNameIn(expectedDeviceNames);
-    bleManagerCapture.recordDevice = { id: '12-34-56-78-9A-BC', name: 'The Speaker' };
+    bleManagerCapture = new BleManagerCapture(bleManager, { captureName, deviceMap });
     // TODO: share code with bleConstants
     bleManagerCapture.serviceNameMap = {
       [batteryServiceUuid]: 'Battery Service',
@@ -40,7 +50,7 @@ describe('deviceList', () => {
           const scanOptions = null;
           bleManagerCapture.startDeviceScan(uuidList, scanOptions, (error, d) => {
             // console.log('startDeviceScan', error, d.id, d.name);
-            if (!error && deviceNameIn(expectedDeviceNames)(d)) {
+            if (!error && bleManagerCapture.isExpected(d)) {
               resolve(d);
             } else if (error) {
               console.log('error in startDeviceScan', error);
@@ -59,7 +69,9 @@ describe('deviceList', () => {
   });
 
   it('should connect to device', async () => {
-    const { id } = device;
+    const { id, name } = device;
+    console.log(`(actual device: {id: '${id}', name: '${name}'})`);
+    assert.strictEqual(name, deviceMap.expected[id].name);
     await bleManagerCapture.connectToDevice(id);
     await bleManagerCapture.discoverAllServicesAndCharacteristicsForDevice(id);
   });
