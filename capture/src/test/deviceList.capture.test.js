@@ -48,6 +48,7 @@ describe(captureName, () => {
         if (powerState === BleState.PoweredOn) {
           const uuidList = null;
           const scanOptions = null;
+          // TODO: bleManagerCapture.recordCollapseScanResponse({min: 1, max: Infinity});
           bleManagerCapture.startDeviceScan(uuidList, scanOptions, (error, d) => {
             // console.log('startDeviceScan', error, d.id, d.name);
             if (!error && bleManagerCapture.isExpected(d)) {
@@ -80,7 +81,7 @@ describe(captureName, () => {
     const { id } = device;
     const services = await bleManagerCapture.servicesForDevice(id);
     assert.ok(services.find((service) => service.uuid.toLowerCase() === batteryServiceUuid.toLowerCase()));
-    bleManagerCapture.recordValue = base64FromUint8(42); // TODO: inject value to record, how?
+    bleManagerCapture.queueRecordValue(base64FromUint8(42));
     const { value } = await bleManagerCapture.readCharacteristicForDevice(id, batteryServiceUuid, batteryLevelCharacteristicUuid);
     const batteryLevel = uint8FromBase64(value);
     console.log(`(actual batteryLevel = ${batteryLevel})`);

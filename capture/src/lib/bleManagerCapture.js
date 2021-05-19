@@ -15,6 +15,7 @@ export class BleManagerCapture {
     this.bleManager = bleManager;
     this.captureName = captureName;
     this.deviceMap = deviceMap;
+    this.recordValueQueue = [];
     console.log(`BleCapture: ${JSON.stringify({ event: 'init', name: this.captureName })}`);
   }
   record(item) { // TODO: private
@@ -50,8 +51,12 @@ export class BleManagerCapture {
   isExpected(device) { // TODO: extract to BleManagerCaptureControl
     return Boolean(Object.keys(this.deviceMap.expected[device.id]));
   }
-  // TODO: BleManagerCaptureControl.pushRecordValue()
-  // TODO: BleManagerCaptureControl.mapRecordDeviceId(actualDeviceId, recordDeviceId)
+  queueRecordValue(value) { // TODO: extract to BleManagerCaptureControl
+    this.recordValueQueue.push(value);
+  }
+  dequeueRecordValue() { // TODO: private
+    return this.recordValueQueue.shift();
+  }
   async state() {
     const state = await this.bleManager.state();
     this.record({
@@ -273,7 +278,8 @@ export class BleManagerCapture {
       characteristicUUID,
     );
     const { id } = this.recordDevice(deviceId);
-    const value = this.recordValue !== undefined ? this.recordValue : characteristic.value;
+    const recordValue = this.dequeueRecordValue();
+    const value = recordValue !== undefined ? recordValue : characteristic.value;
     this.record({
       type: 'command',
       command: 'readCharacteristicForDevice',
@@ -297,6 +303,7 @@ export class BleManagerCapture {
       characteristicUUID,
       (error, characteristic) => {
         const { value } = characteristic;
+        // Note: eventually support using recordValue, maybe stored per characteristic?
         this.record({
           type: 'event',
           event: 'characteristic',

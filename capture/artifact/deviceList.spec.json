@@ -155,6 +155,18 @@
     }
   },
   {
+    "type": "event",
+    "event": "deviceScan",
+    "args": {
+      "device": {
+        "id": "12-34-56-78-9A-BC",
+        "manufacturerData": "EAQ=",
+        "name": "The Speaker"
+      }
+    },
+    "optional": true
+  },
+  {
     "type": "command",
     "command": "discoverAllServicesAndCharacteristicsForDevice",
     "request": {
