@@ -3,13 +3,11 @@ import 'react-native';
 import React from 'react';
 import { fireEvent, render, waitFor } from '@testing-library/react-native';
 
-import DeviceListScreen from '../view/DeviceListScreen';
+import DeviceListScreen from './DeviceListScreen';
 import { configureStore } from '../state';
 import { withStore } from '../lib/withStore';
 import { getBleManager } from '../singleton/bleManager';
 import { act } from 'react-test-renderer';
-
-// TODO: DeviceList.test.js
 
 describe('DeviceList', () => {
   describe('auto-mocking', () => {
