@@ -1,10 +1,9 @@
-import { State as BleState } from 'react-native-ble-plx';
-
 import * as assert from '../lib/assert';
 import { after, before, describe, it } from '../lib/testRunner';
 import { batteryLevelCharacteristicUuid, batteryServiceUuid } from '../lib/bleConstants';
 import { base64FromUint8, uint8FromBase64 } from '../lib/base64';
 import { BleManagerCaptureControl } from '../lib/bleManagerCapture';
+import * as bleService from '../lib/bleService';
 
 const captureName = 'deviceList';
 
@@ -43,27 +42,16 @@ describe(captureName, () => {
 
   it('should receive scan result', async () => {
     device = await new Promise((resolve, reject) => {
-      bleManager.onStateChange((powerState) => {
-        if (powerState === BleState.PoweredOn) {
-          const uuidList = null;
-          const scanOptions = null;
-          // TODO: captureControl.recordCollapseScanResponse({min: 1, max: Infinity});
-          bleManager.startDeviceScan(uuidList, scanOptions, (error, d) => {
-            // console.log('startDeviceScan', error, d.id, d.name);
-            if (!error && captureControl.isExpected(d)) {
-              resolve(d);
-            } else if (error) {
-              console.log('error in startDeviceScan', error);
-              reject(error);
-            } else {
-              console.log(`(unexpected device "${d.name}", ignoring)`);
-            }
-          });
-        } else if (powerState === BleState.PoweredOff) {
-          console.warn('Phone Bluetooth is disabled');
-          reject('Phone Bluetooth is disabled');
+      bleService.startScanning(bleManager, (error, d) => {
+        if (!error && captureControl.isExpected(d)) {
+          resolve(d);
+        } else if (error) {
+          console.log('error in startDeviceScan', error);
+          reject(error);
+        } else {
+          console.log(`(unexpected device "${d.name}", ignoring)`);
         }
-      }, true);
+      });
     });
     captureControl.label('scanned');
   });
