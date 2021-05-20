@@ -17,10 +17,12 @@ export class BleManager {
     this._nextRecordIndex = 0;
   }
 
-  _error(message) {
-    // Note: exceptions might be swallowed by code-under-test, so we deliberately output the error here as well
+  _error(message, skipThrow = false) {
+    // Note: exceptions might be swallowed by code-under-test, so we deliberately output the error here as well for visibility
     console.error(message);
-    throw new Error(message);
+    if (!skipThrow) {
+      throw new Error(message);
+    }
   }
 
   _peekRecord() {
@@ -38,19 +40,22 @@ export class BleManager {
     return record;
   }
 
-  _expectCommand({ command, request }) {
+  _expectCommand({ command, request }, skipThrow = false) {
     const fromRecordIndex = this._nextRecordIndex;
     this.playUntilCommand(); // Note: flush any additionally recorded events
     if (this._nextRecordIndex >= this._recording.length) {
-      this._error(`BleManagerMock: missing record for "${command}" with request\n"${JSON.stringify(request)}" since index ${fromRecordIndex}`);
+      this._error(`BleManagerMock: missing record for "${command}" with request\n"${JSON.stringify(request)}" since index ${fromRecordIndex}`, skipThrow);
+      return;
     }
     const record = this._popRecord();
     const { response } = record;
     if (record.command !== command) {
-      this._error(`BleManagerMock: missing record for "${command}" with request "${JSON.stringify(request)}", found ${JSON.stringify(record)} since index ${fromRecordIndex}`);
+      this._error(`BleManagerMock: missing record for "${command}" with request "${JSON.stringify(request)}", found ${JSON.stringify(record)} since index ${fromRecordIndex}`, skipThrow);
+      return;
     }
     if (!deepEqual(record.request, request)) {
-      this._error(`BleManagerMock: mismatched record for "${command}" with request\n"${JSON.stringify(request)}" but found\n"${JSON.stringify(record.request)}"`);
+      this._error(`BleManagerMock: mismatched record for "${command}" with request\n"${JSON.stringify(request)}" but found\n"${JSON.stringify(record.request)}"`, skipThrow);
+      return;
     }
     // console.log(`BleManagerMock: ${command} returning ${JSON.stringify(response)}`);
     return response;
@@ -248,8 +253,11 @@ export class BleManager {
   }
 
   async stopDeviceScan() {
-    // TODO: if stopDeviceScan() is called from the apps exception handler, it can mess up the error reporting if the exception was not expected
-    // this.expectCommand({ command: 'stopDeviceScan', request: {} });
+    // Note: if stopDeviceScan() is called from within an exception handler of the code-under-test,
+    // it can mess up that error reporting, so we will skip throwing in this case.
+    // Note: eventually consider if this approach needs to be generalized
+    const skipThrow = true;
+    this._expectCommand({ command: 'stopDeviceScan', request: {} }, skipThrow);
   }
 
   async connectToDevice(id, options) {
@@ -302,7 +310,7 @@ export class BleManager {
       console.error(`Warning: missing call to monitorCharacteristicForDevice('${id}', '${serviceUUID}', '${characteristicUUID}).remove()`);
     }
     this._characteristicListener[serviceUUID][characteristicUUID] = listener;
-    this._autoPlayEvents(); // TODO: do this on all commands??
+    this._autoPlayEvents(); // Note: eventually consider if we should do this on all commands
     return {
       remove: () => {
         delete this._characteristicListener[serviceUUID][characteristicUUID];
@@ -311,9 +319,9 @@ export class BleManager {
   }
 
   async writeCharacteristicWithResponseForDevice(id, serviceUUID, characteristicUUID, value) {
-    this._expectCommand({ command: 'writeCharacteristicWithResponseForDevice', request: { id, serviceUUID, characteristicUUID, value } });
-    // TODO: response is characteristic
-    this._autoPlayEvents(); // TODO: do this on all commands??
+    const characteristic = this._expectCommand({ command: 'writeCharacteristicWithResponseForDevice', request: { id, serviceUUID, characteristicUUID, value } });
+    this._autoPlayEvents(); // Note: eventually consider if we should do this on all commands
+    return characteristic;
   }
 
   async readRSSIForDevice(id) {
