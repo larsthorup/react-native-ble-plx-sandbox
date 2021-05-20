@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { SafeAreaView, StatusBar, StyleSheet, Text } from 'react-native';
+import { SafeAreaView, ScrollView, StatusBar, StyleSheet, Text } from 'react-native';
 import { run } from '../lib/testRunner';
 import { TestRunnerEventReporter } from '../lib/TestRunnerEventReporter';
 import { stringifyTestRunnerEvent } from '../lib/testRunnerJsonProtocol';
@@ -21,32 +21,34 @@ const TestRunnerScreen = () => {
   return (
     <SafeAreaView>
       <StatusBar />
-      <Text style={styles.heading}>Test Runner</Text>
-      {progress.map(({ duration, event, name, message }, eventNumber) => {
-        const text = (() => {
-          switch (event) {
-            case 'complete':
-              return 'Done!';
-            case 'fail':
-              return `  X ${name}: ${message} (${duration} ms)`;
-            case 'pass':
-              return `  √ ${name} (${duration} ms)`;
-            case 'start':
-              return 'Running tests...';
-            case 'suite:complete':
-              return `  (${duration} ms)`;
-            case 'suite:start':
-              return `> ${name}`;
-          }
-        })();
-        return (
-          <Text
-            style={{ ...styles.progress, ...styles[`progress.${event}`] }}
-            key={eventNumber}>
-            <>{text}</>
-          </Text>
-        );
-      })}
+      <ScrollView>
+        <Text style={styles.heading}>Test Runner</Text>
+        {progress.map(({ duration, event, name, message }, eventNumber) => {
+          const text = (() => {
+            switch (event) {
+              case 'complete':
+                return 'Done!';
+              case 'fail':
+                return `  X ${name}: ${message} (${duration} ms)`;
+              case 'pass':
+                return `  √ ${name} (${duration} ms)`;
+              case 'start':
+                return 'Running tests...';
+              case 'suite:complete':
+                return `  (${duration} ms)`;
+              case 'suite:start':
+                return `> ${name}`;
+            }
+          })();
+          return (
+            <Text
+              style={{ ...styles.progress, ...styles[`progress.${event}`] }}
+              key={eventNumber}>
+              <>{text}</>
+            </Text>
+          );
+        })}
+      </ScrollView>
     </SafeAreaView>
   );
 };
