@@ -1,6 +1,6 @@
 import { Buffer } from 'buffer';
 
-import { getBleManager } from '../lib/ble';
+import { getBleManager } from '../singleton/bleManager';
 import { bleDeviceBatteryLevel, bleDeviceSignal } from '../state';
 
 
@@ -24,10 +24,10 @@ export const devicePolling = ({ id }) => async (dispatch, getState) => {
       dispatch(bleDeviceSignal({ id, signal: rssi }));
       setTimeout(async () => {
         dispatch(devicePolling({ id }));
-      }, 500); // TODO: use monitor characteristic for battery
+      }, 500); // Note: eventually use monitor characteristic for battery
     }
   } catch (err) {
-    // TODO: report error to user
+    // Note: eventually report error to user
     console.error('devicePolling', err);
   }
 };

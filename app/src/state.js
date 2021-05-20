@@ -8,7 +8,7 @@ const trace = false;
 export const initialState = {
   ble: {
     powerState: null,
-    deviceSet: {}, // TODO: reselect
+    deviceSet: {}, // Note: eventually cache Object.keys(device) with reselect
     device: {},
   },
 };

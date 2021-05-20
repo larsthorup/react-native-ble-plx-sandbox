@@ -1,4 +1,4 @@
-// TODO: share with app
+// Note: eventually share with app
 export const service = {
   battery: {
     name: 'Battery Service',

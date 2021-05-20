@@ -1,5 +1,5 @@
 import { blePowerStateChanged, bleDeviceScanned } from '../state';
-import { getBleManager } from '../lib/ble';
+import { getBleManager } from '../singleton/bleManager';
 import { State as BleState } from 'react-native-ble-plx';
 
 export const deviceScanning = async (dispatch, getState) => {
@@ -22,7 +22,7 @@ export const deviceScanning = async (dispatch, getState) => {
               // console.log({ id, name, localName, manufacturerData, rssi });
               dispatch(bleDeviceScanned({ device }));
             }
-            // TODO: remove device
+            // Note: eventually handle device disappearing from scan
           } catch (ex) {
             console.error('bleManager.onDeviceScan exception', ex);
           }

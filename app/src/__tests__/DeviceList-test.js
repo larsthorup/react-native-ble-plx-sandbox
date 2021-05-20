@@ -6,7 +6,7 @@ import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import DeviceListScreen from '../view/DeviceListScreen';
 import { configureStore } from '../state';
 import { withStore } from '../lib/withStore';
-import { getBleManager } from '../lib/ble';
+import { getBleManager } from '../singleton/bleManager';
 import { act } from 'react-test-renderer';
 
 // TODO: DeviceList.test.js
@@ -15,7 +15,7 @@ describe('DeviceList', () => {
   describe('auto-mocking', () => {
     // for (const _ of '*'.repeat(1000))
     it('should load and show device info', async () => {
-      const spec = JSON.parse(fs.readFileSync('../capture/artifact/deviceList.spec.json')); // TODO: relative path
+      const spec = JSON.parse(fs.readFileSync('../capture/artifact/deviceList.spec.json'));
       const bleManagerMock = getBleManager();
       bleManagerMock.mockWith(spec);
 

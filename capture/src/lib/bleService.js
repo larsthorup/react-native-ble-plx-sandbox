@@ -1,6 +1,6 @@
 import { State as BleState } from 'react-native-ble-plx';
 
-// TODO: share with app
+// Note: eventually share with app
 export const startScanning = (bleManager, listener) => {
   bleManager.onStateChange((powerState) => {
     if (powerState === BleState.PoweredOn) {

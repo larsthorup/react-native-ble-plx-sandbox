@@ -1,5 +1,5 @@
 import { bleDeviceConnecting } from '../state';
-import { getBleManager } from '../lib/ble';
+import { getBleManager } from '../singleton/bleManager';
 import { devicePolling } from './devicePolling';
 
 export const deviceConnecting = ({ id }) => async (dispatch, getState) => {
