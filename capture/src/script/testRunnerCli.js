@@ -51,12 +51,10 @@ await exec(`adb pull ${viewRemotePath} ${viewLocalPath}`, {
 });
 const view = fs.readFileSync(viewLocalPath, 'utf-8');
 const viewMatch = view.match(/resource-id="com.android.permissioncontroller:id\/permission_allow_foreground_only_button"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/);
-const [_, x1str, y1str, x2str, y2str] = viewMatch;
-const [x1, y1, x2, y2] = [x1str, y1str, x2str, y2str].map((str) => parseInt(str));
-console.log({ x1, y1, x2, y2 });
+const [x1str, y1str, x2str, y2str] = viewMatch.slice(1);
+const [x1, y1, x2, y2] = [x1str, y1str, x2str, y2str].map((str) => Number(str));
 const x = Math.trunc((x1 + x2) / 2);
 const y = Math.trunc((y1 + y2) / 2);
-console.log({ x, y });
 await exec(`adb shell input tap ${x} ${y}`);
 
 let bleRecording = [];
