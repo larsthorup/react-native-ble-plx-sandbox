@@ -26,7 +26,7 @@ try {
   console.log('(failed to clear app, continuing)');
 }
 
-// launch 
+// launch
 console.log('Launching test runner on device...');
 await exec(`adb shell am start -n '${process.env.PACKAGE_NAME}/.MainActivity'`);
 
@@ -55,7 +55,7 @@ await new Promise((resolve) => {
           console.log('Running tests...');
           break;
         case 'suite:complete':
-          console.log(`  (${duration} ms)`)
+          console.log(`  (${duration} ms)`);
           break;
         case 'suite:start':
           console.log(`> ${name}`);

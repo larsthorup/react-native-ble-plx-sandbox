@@ -2,6 +2,7 @@
   "name": "react-native-ble-plx-sandbox-capture",
   "version": "0.0.1",
   "private": true,
+  "type": "module",
   "scripts": {
     "android": "react-native run-android",
     "android:assemble": "cd android && bash ./gradlew assembleDebug --console=plain",
@@ -12,14 +13,16 @@
     "android:log:clear": "adb logcat -c",
     "android:log": "adb logcat -d -v raw -s ReactNativeJS:V",
     "android:stop": "dotenv -- bash -c 'adb shell pm clear $PACKAGE_NAME' || echo Failed to clear app - continuing",
-    "capture": "node src/script/testRunnerCli.mjs",
-    "match": "node src/script/specMatcherCli.mjs",
+    "capture": "node src/script/testRunnerCli",
+    "match": "node src/script/specMatcherCli",
     "eslint": "eslint . --fix --max-warnings 0 --ignore-path .gitignore",
     "ios": "react-native run-ios",
     "start": "react-native start",
     "test": "npm run eslint && npm run android:build && npm run android:stop && npm run android:install && npm run capture && npm run match"
   },
   "dependencies": {
+    "@babel/eslint-parser": "^7.14.3",
+    "@babel/plugin-syntax-top-level-await": "^7.12.13",
     "buffer": "^6.0.3",
     "chalk": "^2.4.2",
     "dotenv-cli": "^4.0.0",

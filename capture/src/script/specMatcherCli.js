@@ -1,5 +1,5 @@
 import * as fs from 'fs';
-import SpecMatcher from '../lib/SpecMatcher.mjs';
+import SpecMatcher from '../lib/specMatcher.js';
 
 
 const captureName = 'deviceList'; // TODO: configure per capture test suite

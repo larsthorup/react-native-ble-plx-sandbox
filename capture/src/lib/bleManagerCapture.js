@@ -181,7 +181,7 @@ export class BleManagerCapture {
           },
         });
         listener(error, device);
-      }
+      },
     );
     const { id } = this._captureControl._recordDevice(deviceId);
     this._captureControl._record({
@@ -305,7 +305,7 @@ export class BleManagerCapture {
           ...(this._captureControl._debugFor({ serviceUUID, characteristicUUID, value })),
         });
         listener(error, characteristic);
-      }
+      },
     );
     this._captureControl._record({
       type: 'command',

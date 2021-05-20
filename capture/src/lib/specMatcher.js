@@ -28,7 +28,7 @@ export default class SpecMatcher {
       } else if (specItem.optional) {
         specIndex++;
       } else {
-        console.error("Unexpected", actualItem, "not matching", specItem, "actual index", actualIndex, "specIndex", specIndex);
+        console.error('Unexpected', actualItem, 'not matching', specItem, 'actual index', actualIndex, 'specIndex', specIndex);
         return false;
       }
     }
