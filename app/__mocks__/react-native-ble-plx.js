@@ -1,4 +1,5 @@
 import { State as BleState } from 'react-native-ble-plx';
+import deepEqual from 'deep-equal';
 
 export const State = BleState;
 
@@ -12,8 +13,8 @@ export class BleManager {
     delete this.deviceDisconnectedListener;
     delete this.deviceScanListener;
     delete this.stateChangeListener;
-    this.messageList = []; // TODO: recording
-    this.nextMessageIndex = 0;
+    this.recording = [];
+    this.nextRecordIndex = 0;
   }
 
   error(message) { // TODO: private
@@ -22,48 +23,47 @@ export class BleManager {
     throw new Error(message);
   }
 
-  peekMessage() { // TODO: private
-    if (this.nextMessageIndex >= this.messageList.length) {
-      this.error(`Assertion failed: ${this.nextMessageIndex} < ${this.messageList.length}`);
+  peekRecord() { // TODO: private
+    if (this.nextRecordIndex >= this.recording.length) {
+      this.error(`Assertion failed: ${this.nextRecordIndex} < ${this.recording.length}`);
     }
-    const message = this.messageList[this.nextMessageIndex];
-    return message;
+    const record = this.recording[this.nextRecordIndex];
+    return record;
   }
 
-  popMessage() { // TODO: private
-    const message = this.peekMessage();
-    ++this.nextMessageIndex;
-    // console.trace(`popping: ${JSON.stringify(message)}`);
-    return message;
+  popRecord() { // TODO: private
+    const record = this.peekRecord();
+    ++this.nextRecordIndex;
+    // console.trace(`popping: ${JSON.stringify(record)}`);
+    return record;
   }
 
   expectCommand({ command, request }) { // TODO: private
-    const fromMessageIndex = this.nextMessageIndex;
+    const fromRecordIndex = this.nextRecordIndex;
     this.playUntilCommand(); // Note: flush any additionally recorded events
-    if (this.nextMessageIndex >= this.messageList.length) {
-      this.error(`BleManagerMock: missing record for "${command}" with request\n"${JSON.stringify(request)}" since index ${fromMessageIndex}`);
+    if (this.nextRecordIndex >= this.recording.length) {
+      this.error(`BleManagerMock: missing record for "${command}" with request\n"${JSON.stringify(request)}" since index ${fromRecordIndex}`);
     }
-    const message = this.popMessage();
-    const { response } = message;
-    if (message.command !== command) {
-      this.error(`BleManagerMock: missing record for "${command}" with request "${JSON.stringify(request)}", found ${JSON.stringify(message)} since index ${fromMessageIndex}`);
+    const record = this.popRecord();
+    const { response } = record;
+    if (record.command !== command) {
+      this.error(`BleManagerMock: missing record for "${command}" with request "${JSON.stringify(request)}", found ${JSON.stringify(record)} since index ${fromRecordIndex}`);
     }
-    // TODO: use proper deep equal function
-    if (JSON.stringify(message.request) !== JSON.stringify(request)) {
-      this.error(`BleManagerMock: mismatched record for "${command}" with request\n"${JSON.stringify(request)}" but found\n"${JSON.stringify(message.request)}"`);
+    if (!deepEqual(record.request, request)) {
+      this.error(`BleManagerMock: mismatched record for "${command}" with request\n"${JSON.stringify(request)}" but found\n"${JSON.stringify(record.request)}"`);
     }
     // console.log(`BleManagerMock: ${command} returning ${JSON.stringify(response)}`);
     return response;
   }
 
-  mockWith(messageList) { // TODO: extract to BleManagerMock
+  mockWith(recording) { // TODO: extract to BleManagerMockControl
     this.reset();
-    this.messageList = messageList;
+    this.recording = recording;
   }
 
   playNext() { // TODO: extract to BleManagerMock
-    const message = this.popMessage();
-    const { args, command, event, label, type } = message;
+    const record = this.popRecord();
+    const { args, command, event, label, type } = record;
     if (type === 'label') {
       console.log(`(BleManagerMock: unused label: "${label}")`);
     } else if (type === 'event') {
@@ -81,7 +81,7 @@ export class BleManager {
             }
           } else {
             console.log(this.characteristicListener, { serviceUUID, characteristicUUID });
-            console.warn(`BleManagerMock: message cannot be delivered, as bleManager.monitorCharacteristicForDevice has not yet been called: ${JSON.stringify(message)} or subscription was removed`);
+            console.warn(`BleManagerMock: event cannot be delivered, as bleManager.monitorCharacteristicForDevice has not yet been called: ${JSON.stringify(record)} or subscription was removed`);
           }
           break;
         }
@@ -92,7 +92,7 @@ export class BleManager {
             deviceScanListener(error, device);
             // TODO: report sync/async exception in listener
           } else {
-            console.warn(`BleManagerMock: message cannot be delivered, as bleManager.startDeviceScan has not yet been called: ${JSON.stringify(message)}`);
+            console.warn(`BleManagerMock: event cannot be delivered, as bleManager.startDeviceScan has not yet been called: ${JSON.stringify(record)}`);
           }
           break;
         }
@@ -103,31 +103,31 @@ export class BleManager {
             stateChangeListener(powerState);
             // TODO: report sync/async exception in listener
           } else {
-            console.warn(`BleManagerMock: message cannot be delivered, as bleManager.onStateChange has not yet been called: ${JSON.stringify(message)}`);
+            console.warn(`BleManagerMock: event cannot be delivered, as bleManager.onStateChange has not yet been called: ${JSON.stringify(record)}`);
           }
           break;
         }
         default:
-          throw new Error(`BleManagerMock: Unrecognized event "${event}" in message ${JSON.stringify(message)}`);
+          throw new Error(`BleManagerMock: Unrecognized event "${event}" in record ${JSON.stringify(record)}`);
       }
     } else if (type === 'command') {
-      throw new Error(`BleManagerMock: command "${command}" expected but has not yet been called: ${JSON.stringify(message)}`);
+      throw new Error(`BleManagerMock: command "${command}" expected but has not yet been called: ${JSON.stringify(record)}`);
     } else if (type === 'label') {
       // TODO: silent skip extra labels??
-      throw new Error(`BleManagerMock: missing playUntil('${label}'): ${JSON.stringify(message)}`);
+      throw new Error(`BleManagerMock: missing playUntil('${label}'): ${JSON.stringify(record)}`);
     } else {
-      throw new Error(`BleManagerMock: Unrecognized type "${type}": ${JSON.stringify(message)}`);
+      throw new Error(`BleManagerMock: Unrecognized type "${type}": ${JSON.stringify(record)}`);
     }
   }
 
   playUntilCommand() { // TODO: extract to BleManagerMock
     try {
       while (true) {
-        if (this.nextMessageIndex >= this.messageList.length) {
+        if (this.nextRecordIndex >= this.recording.length) {
           break;
         }
-        const message = this.peekMessage();
-        if (message.type === 'command' && message.command) {
+        const record = this.peekRecord();
+        if (record.type === 'command' && record.command) {
           break;
         }
         this.playNext();
@@ -140,14 +140,14 @@ export class BleManager {
 
   playUntil(label) { // TODO: extract to BleManagerMock
     try {
-      const fromMessageIndex = this.nextMessageIndex;
+      const fromRecordIndex = this.nextRecordIndex;
       while (true) {
-        if (this.nextMessageIndex >= this.messageList.length) {
-          throw new Error(`BleManagerMock: label "${label}" not found in recording since index ${fromMessageIndex}`);
+        if (this.nextRecordIndex >= this.recording.length) {
+          throw new Error(`BleManagerMock: label "${label}" not found in recording since index ${fromRecordIndex}`);
         }
-        const message = this.peekMessage();
-        if (message.type === 'label' && message.label === label) {
-          this.popMessage();
+        const record = this.peekRecord();
+        if (record.type === 'label' && record.label === label) {
+          this.popRecord();
           break;
         }
         this.playNext();
@@ -160,14 +160,14 @@ export class BleManager {
 
   autoPlayEvents() { // TODO: extract to BleManagerMock
     while (true) {
-      if (this.nextMessageIndex >= this.messageList.length) {
+      if (this.nextRecordIndex >= this.recording.length) {
         break;
       }
-      const message = this.peekMessage();
-      if (message.type !== 'event') {
+      const record = this.peekRecord();
+      if (record.type !== 'event') {
         break;
       }
-      if (!message.autoPlay) {
+      if (!record.autoPlay) {
         break;
       }
       this.playNext();
@@ -175,13 +175,13 @@ export class BleManager {
   }
 
   expectFullCaptureCoverage() { // TODO: extract to BleManagerMock
-    const remainingMessageCount = this.messageList.length - this.nextMessageIndex;
-    if (remainingMessageCount > 0) {
-      throw new Error(`Expected recording to be fully covered but last ${remainingMessageCount} messages were not played`);
+    const remainingRecordCount = this.recording.length - this.nextRecordIndex;
+    if (remainingRecordCount > 0) {
+      throw new Error(`Expected recording to be fully covered but last ${remainingRecordCount} records were not played`);
     }
   }
 
-  onStateChange(listener, emitCurrentState) {
+  onStateChange(listener, emitCurrentState = false) {
     // TODO: error if listener alreay exists
     this.expectCommand({ command: 'onStateChange', request: { emitCurrentState } });
     this.stateChangeListener = listener;
@@ -223,7 +223,11 @@ export class BleManager {
   }
 
   async connectToDevice(id, options) {
-    const response = this.expectCommand({ command: 'connectToDevice', request: { id, options } });
+    const request = {
+      id,
+      ...(options !== undefined && { options }),
+    };
+    const response = this.expectCommand({ command: 'connectToDevice', request });
     return response;
   }
 

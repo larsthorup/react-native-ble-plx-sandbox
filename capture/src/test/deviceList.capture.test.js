@@ -29,8 +29,6 @@ describe(captureName, () => {
     // console.log('Looking for speakers', deviceMap.expected);
     captureControl = new BleManagerCaptureControl({ captureName, deviceMap, nameFromUuid });
     bleManager = captureControl.bleManagerCapture;
-    // TODO: auto generate
-    console.log(captureControl.nameFromUuid);
   });
 
   it('should receive scan result', async () => {
