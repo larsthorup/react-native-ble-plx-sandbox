@@ -2,13 +2,14 @@ import React, { useEffect, useState } from 'react';
 import { SafeAreaView, StatusBar, StyleSheet, Text } from 'react-native';
 import { run } from '../lib/testRunner';
 import { TestRunnerEventReporter } from '../lib/TestRunnerEventReporter';
+import { stringifyTestRunnerEvent } from '../lib/testRunnerJsonProtocol';
 
 const TestRunnerScreen = () => {
   const [isRunning, setIsRunning] = useState(false);
   const [progress, setProgress] = useState([]);
   useEffect(() => {
     const log = runnerEvent => {
-      console.log(`TestRunner: ${JSON.stringify(runnerEvent)}`);
+      console.log(stringifyTestRunnerEvent(runnerEvent));
       setProgress(prev => prev.concat([runnerEvent]));
     };
     const reporter = new TestRunnerEventReporter(log);

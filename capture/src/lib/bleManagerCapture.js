@@ -1,6 +1,7 @@
 import * as util from 'util';
 import { BleManager } from 'react-native-ble-plx';
 import { asciiFromBase64, bufferFromBase64, isAsciiFromBase64 } from './base64';
+import { stringifyBleCaptureEvent, stringifyBleRecord } from './bleCaptureJsonProtocol';
 
 const formattedFromBase64 = (value) => {
   const valueBufferFormatted = util.format(bufferFromBase64(value));
@@ -348,12 +349,12 @@ export class BleManagerCaptureControl {
     this._capture({ event: 'init', name: this.captureName });
   }
 
-  _capture(item) {
-    console.log(`BleCapture: ${JSON.stringify(item)}`);
+  _capture(captureEvent) {
+    console.log(stringifyBleCaptureEvent(captureEvent));
   }
 
   _record(record) {
-    console.log(`BleRecord: ${JSON.stringify(record)}`);
+    console.log(stringifyBleRecord(record));
   }
 
   _exclude(item) {

@@ -5,6 +5,8 @@ import { promisify } from 'util';
 
 import chalk from 'chalk';
 import 'dotenv/config';
+import { parseTestRunnerEvent } from '../lib/testRunnerJsonProtocol.js';
+import { parseBleCaptureEvent, parseBleRecord } from '../lib/bleCaptureJsonProtocol.js';
 
 const exec = promisify(cp.exec);
 const { spawn } = cp;
@@ -18,6 +20,10 @@ await exec('adb logcat -c');
 
 // start adb logcat
 const logcat = spawn('adb', ['logcat', '-v', 'raw', '-s', 'ReactNativeJS:V']);
+const logCatIgnorePrefixList = [
+  '--------- beginning of ',
+  `Running "${appName}" with `,
+];
 
 // stop app, if already running
 try {
@@ -30,15 +36,14 @@ try {
 console.log('Launching test runner on device...');
 await exec(`adb shell am start -n '${process.env.PACKAGE_NAME}/.MainActivity'`);
 
-// wait for event: complete
-const testRunnerPrefix = 'TestRunner: ';
-const bleRecordPrefix = 'BleRecord: ';
-const bleCapturePrefix = 'BleCapture: ';
 let bleRecording = [];
+// wait for event: complete
 await new Promise((resolve) => {
   lineTransformer(logcat.stdout).on('line', (line) => {
-    if (line.startsWith(testRunnerPrefix)) {
-      const runnerEvent = JSON.parse(line.substr(testRunnerPrefix.length));
+    const runnerEvent = parseTestRunnerEvent(line);
+    const bleRecord = parseBleRecord(line);
+    const bleCaptureEvent = parseBleCaptureEvent(line);
+    if (runnerEvent) {
       const { duration, event, message, name } = runnerEvent;
       switch (event) {
         case 'complete':
@@ -61,11 +66,10 @@ await new Promise((resolve) => {
           console.log(`> ${name}`);
           break;
       }
-    } else if (line.startsWith(bleRecordPrefix)) {
-      const bleRecord = JSON.parse(line.substr(bleRecordPrefix.length));
+    } else if (bleRecord) {
       bleRecording.push(bleRecord);
-    } else if (line.startsWith(bleCapturePrefix)) {
-      const { event, name } = JSON.parse(line.substr(bleCapturePrefix.length));
+    } else if (bleCaptureEvent) {
+      const { event, name } = bleCaptureEvent;
       switch (event) {
         case 'init':
           bleRecording = [];
@@ -76,9 +80,7 @@ await new Promise((resolve) => {
           console.log(`(BLE capture file saved in ${capturePath}: ${bleRecording.length} records)`);
           break;
       }
-    } else if (line.startsWith('--------- beginning of ')) {
-      // skip
-    } else if (line.startsWith(`Running "${appName}" with `)) {
+    } else if (logCatIgnorePrefixList.some((prefix) => line.startsWith(prefix))) {
       // skip
     } else {
       console.log(`    ${chalk.grey(line)}`);
