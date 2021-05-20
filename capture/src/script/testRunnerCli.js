@@ -36,6 +36,29 @@ try {
 console.log('Launching test runner on device...');
 await exec(`adb shell am start -n '${process.env.PACKAGE_NAME}/.MainActivity'`);
 
+// allow location permission required to use BLE on phone
+console.log('Allowing app to run with necessary permissions');
+const { stdout: dumpOutput } = await exec('adb shell uiautomator dump');
+const viewRemotePathMatch = dumpOutput.match(/[^ ]+.xml/);
+const viewRemotePath = viewRemotePathMatch[0];
+fs.mkdirSync('./output', { recursive: true });
+const viewLocalPath = './output/view.xml';
+await exec(`adb pull ${viewRemotePath} ${viewLocalPath}`, {
+  env: {
+    ...process.env,
+    MSYS_NO_PATHCONV: '1', // Note: for windows git bash: https://github.com/git-for-windows/git/issues/577#issuecomment-166118846
+  },
+});
+const view = fs.readFileSync(viewLocalPath, 'utf-8');
+const viewMatch = view.match(/resource-id="com.android.permissioncontroller:id\/permission_allow_foreground_only_button"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/);
+const [_, x1str, y1str, x2str, y2str] = viewMatch;
+const [x1, y1, x2, y2] = [x1str, y1str, x2str, y2str].map((str) => parseInt(str));
+console.log({ x1, y1, x2, y2 });
+const x = Math.trunc((x1 + x2) / 2);
+const y = Math.trunc((y1 + y2) / 2);
+console.log({ x, y });
+await exec(`adb shell input tap ${x} ${y}`);
+
 let bleRecording = [];
 // wait for event: complete
 await new Promise((resolve) => {
