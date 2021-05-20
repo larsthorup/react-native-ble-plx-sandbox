@@ -1,6 +1,6 @@
 import * as assert from '../lib/assert';
 import { after, before, describe, it } from '../lib/testRunner';
-import { batteryLevelCharacteristicUuid, batteryServiceUuid } from '../lib/bleConstants';
+import { characteristic, nameFromUuid, service } from '../lib/bleConstants';
 import { base64FromUint8, uint8FromBase64 } from '../lib/base64';
 import { BleManagerCaptureControl } from '../lib/bleManagerCapture';
 import * as bleService from '../lib/bleService';
@@ -27,17 +27,10 @@ describe(captureName, () => {
 
   before(() => {
     // console.log('Looking for speakers', deviceMap.expected);
-    captureControl = new BleManagerCaptureControl({ captureName, deviceMap });
+    captureControl = new BleManagerCaptureControl({ captureName, deviceMap, nameFromUuid });
     bleManager = captureControl.bleManagerCapture;
-    // TODO: share code with bleConstants
-    captureControl.serviceNameMap = {
-      [batteryServiceUuid]: 'Battery Service',
-    };
-    captureControl.characteristicNameMap = {
-      [batteryServiceUuid]: {
-        [batteryLevelCharacteristicUuid]: 'Battery Level',
-      },
-    };
+    // TODO: auto generate
+    console.log(captureControl.nameFromUuid);
   });
 
   it('should receive scan result', async () => {
@@ -67,9 +60,9 @@ describe(captureName, () => {
   it('should read battery level', async () => {
     const { id } = device;
     const services = await bleManager.servicesForDevice(id);
-    assert.ok(services.find((service) => service.uuid.toLowerCase() === batteryServiceUuid.toLowerCase()));
+    assert.ok(services.find((s) => s.uuid.toLowerCase() === service.battery.uuid.toLowerCase()));
     captureControl.queueRecordValue(base64FromUint8(42));
-    const { value } = await bleManager.readCharacteristicForDevice(id, batteryServiceUuid, batteryLevelCharacteristicUuid);
+    const { value } = await bleManager.readCharacteristicForDevice(id, service.battery.uuid, characteristic.batteryLevel.uuid);
     const batteryLevel = uint8FromBase64(value);
     console.log(`(actual batteryLevel = ${batteryLevel})`);
     assert.ok(batteryLevel >= 0, `Expected ${batteryLevel} >= 0`);

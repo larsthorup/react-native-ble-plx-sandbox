@@ -340,10 +340,11 @@ export class BleManagerCapture {
 }
 
 export class BleManagerCaptureControl {
-  constructor({ captureName, deviceMap }) {
+  constructor({ captureName, deviceMap, nameFromUuid }) {
     this.bleManagerCapture = new BleManagerCapture(this);
     this.captureName = captureName;
     this.deviceMap = deviceMap;
+    this.nameFromUuid = nameFromUuid;
     this.recordRssi = undefined;
     this._recordValueQueue = [];
     this._capture({ event: 'init', name: this.captureName });
@@ -362,8 +363,8 @@ export class BleManagerCaptureControl {
   }
 
   _debugFor({ serviceUUID, characteristicUUID, value }) {
-    const serviceName = this.serviceNameMap[serviceUUID];
-    const characteristicName = (this.characteristicNameMap[serviceUUID] || {})[characteristicUUID];
+    const serviceName = this.nameFromUuid[serviceUUID];
+    const characteristicName = this.nameFromUuid[characteristicUUID];
     return {
       debug: {
         ...(serviceName && { serviceUUID: serviceName }),
