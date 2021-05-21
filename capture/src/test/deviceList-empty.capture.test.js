@@ -1,6 +1,7 @@
+import * as bleService from '../shared/bleService';
+
 import { after, before, describe, it } from '../lib/testRunner';
 import { BleManagerCaptureControl } from '../lib/bleManagerCapture';
-import * as bleService from '../lib/bleService';
 
 const captureName = 'deviceList-empty';
 

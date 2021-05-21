@@ -65,3 +65,4 @@ android/app/src/main/res/raw/app.json
 artifact/*.capture.json
 
 output/
+src/shared/

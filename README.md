@@ -2,7 +2,10 @@
 
 [![Build Status](https://travis-ci.com/larsthorup/react-native-ble-plx-sandbox.svg?branch=main)](https://travis-ci.com/larsthorup/react-native-ble-plx-sandbox)
 
-Setup your environment: https://reactnative.dev/docs/environment-setup
+Prerequisites:
+
+- Setup your environment: https://reactnative.dev/docs/environment-setup
+- Use bash
 
 ```bash
 npm install

@@ -1,9 +1,10 @@
+import * as bleService from '../shared/bleService';
+import { characteristic, nameFromUuid, service } from '../shared/bleConstants';
+
 import * as assert from '../lib/assert';
 import { after, before, describe, it } from '../lib/testRunner';
-import { characteristic, nameFromUuid, service } from '../lib/bleConstants';
 import { base64FromUint8, uint8FromBase64 } from '../lib/base64';
 import { BleManagerCaptureControl } from '../lib/bleManagerCapture';
-import * as bleService from '../lib/bleService';
 
 const captureName = 'deviceList';
 

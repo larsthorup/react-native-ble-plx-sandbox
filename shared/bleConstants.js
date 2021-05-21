@@ -1,4 +1,6 @@
-// Note: eventually share with app
+// Warning: edit the source in /shared, not in /{app,capture}/src/shared
+// and use `npm run sync`
+
 export const service = {
   battery: {
     name: 'Battery Service',

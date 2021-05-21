@@ -1,5 +1,7 @@
 import { Buffer } from 'buffer';
 
+import { characteristic, service } from '../shared/bleConstants';
+
 import { getBleManager } from '../singleton/bleManager';
 import { bleDeviceBatteryLevel, bleDeviceSignal } from '../state';
 
@@ -11,12 +13,10 @@ export const devicePolling = ({ id }) => async (dispatch, getState) => {
       const bleManager = getBleManager();
       const services = await bleManager.servicesForDevice(id);
       // console.log(services.map(service => service.uuid));
-      const batteryServiceUuid = '0000180f-0000-1000-8000-00805f9b34fb';
-      if (services.find((service) => service.uuid.toLowerCase() === batteryServiceUuid.toLowerCase())) {
+      if (services.find((s) => s.uuid.toLowerCase() === service.battery.uuid.toLowerCase())) {
         // const characteristics = await bleManager.characteristicsForDevice(id, batteryServiceUuid);
         // console.log(characteristics);
-        const batteryLevelCharacteristicUuid = '00002a19-0000-1000-8000-00805f9b34fb';
-        const batteryLevelCharacteristic = await bleManager.readCharacteristicForDevice(id, batteryServiceUuid, batteryLevelCharacteristicUuid);
+        const batteryLevelCharacteristic = await bleManager.readCharacteristicForDevice(id, service.battery.uuid, characteristic.batteryLevel.uuid);
         const batteryLevel = Buffer.from(batteryLevelCharacteristic.value, 'base64')[0];
         dispatch(bleDeviceBatteryLevel({ id, batteryLevel }));
       }
