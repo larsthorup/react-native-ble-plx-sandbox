@@ -11,6 +11,8 @@ import { parseBleCaptureEvent, parseBleRecord } from '../lib/bleCaptureJsonProto
 const exec = promisify(cp.exec);
 const { spawn } = cp;
 
+const expectedFailCount = Number(process.argv[2] || '0');
+
 const lineTransformer = (input) => readline.createInterface({ input });
 
 const { name: appName } = JSON.parse(fs.readFileSync('./app.json'));
@@ -58,6 +60,7 @@ const y = Math.trunc((y1 + y2) / 2);
 await exec(`adb shell input tap ${x} ${y}`);
 
 let bleRecording = [];
+let failCount = 0;
 // wait for event: complete
 await new Promise((resolve) => {
   lineTransformer(logcat.stdout).on('line', (line) => {
@@ -72,6 +75,7 @@ await new Promise((resolve) => {
           resolve();
           break;
         case 'fail':
+          ++failCount;
           console.log(`  ${chalk.red('X')} ${name}: ${message} (${duration} ms)`);
           break;
         case 'pass':
@@ -111,3 +115,21 @@ await new Promise((resolve) => {
 
 // stop adb logcat
 logcat.kill();
+
+// summary
+if (expectedFailCount === 0) {
+  if (failCount > 0) {
+    console.log(`${failCount} ${failCount > 1 ? 'tests' : 'test'} failed!`);
+  } else {
+    console.log('Success!');
+  }
+  process.exit(failCount);
+} else {
+  if (expectedFailCount !== failCount) {
+    console.log(`Expected number of failed tests to be ${expectedFailCount} but was ${failCount}`);
+    process.exit(1);
+  } else {
+    console.log(`Success (${failCount} test failed as expected)!`);
+    process.exit(0);
+  }
+}

@@ -313,7 +313,9 @@ export class BleManager {
     this._autoPlayEvents(); // Note: eventually consider if we should do this on all commands
     return {
       remove: () => {
-        delete this._characteristicListener[serviceUUID][characteristicUUID];
+        if (this._characteristicListener[serviceUUID]) {
+          delete this._characteristicListener[serviceUUID][characteristicUUID];
+        }
       },
     };
   }
