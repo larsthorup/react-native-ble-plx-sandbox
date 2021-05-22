@@ -35,13 +35,7 @@ export class BleManagerCapture {
 
   onStateChange(listener, emitCurrentState) {
     this._bleManager.onStateChange((powerState) => {
-      this._captureControl._record({
-        type: 'event',
-        event: 'stateChange',
-        args: {
-          powerState,
-        },
-      });
+      this._captureControl._recordEvent('stateChange', { powerState });
       listener(powerState);
     }, emitCurrentState);
     this._captureControl._record({
@@ -58,14 +52,7 @@ export class BleManagerCapture {
     this._bleManager.startDeviceScan(uuidList, scanOptions, (error, device) => {
       if (error) {
         const { message } = error;
-        this._captureControl._record({
-          type: 'event',
-          event: 'deviceScan',
-          args: {
-            device: undefined,
-            error: { message },
-          },
-        });
+        this._captureControl._recordEvent('deviceScan', { error: { message } });
         listener(error, device);
       } else if (device) {
         const deviceExpected = this._captureControl.deviceMap.expected[device.id];
@@ -73,13 +60,8 @@ export class BleManagerCapture {
           const { recordId: id } = deviceExpected;
           const { localName, name } = this._captureControl.deviceMap.record[id];
           const { manufacturerData } = device;
-          this._captureControl._record({
-            type: 'event',
-            event: 'deviceScan',
-            args: {
-              device: { id, localName, manufacturerData, name },
-              error: undefined,
-            },
+          this._captureControl._recordEvent('deviceScan', {
+            device: { id, localName, manufacturerData, name },
           });
           listener(error, device);
         } else {
@@ -88,6 +70,7 @@ export class BleManagerCapture {
             this._captureControl._reported.push(device.id);
           }
           // Note: exclude unexpected scan responses from capture file for now as they are usually quite noisy
+          // TODO: use filter mechanism for this
           const { id, name } = device;
           this._captureControl._exclude({
             type: 'event',
@@ -173,13 +156,9 @@ export class BleManagerCapture {
       deviceId,
       (error, device) => {
         const { recordId: id } = this._captureControl._recordDevice(deviceId);
-        this._captureControl._record({
-          type: 'event',
-          event: 'deviceDisconnected',
-          args: {
-            device: { id },
-            error: error ? { message: error.message } : undefined,
-          },
+        this._captureControl._recordEvent('deviceDisconnected', {
+          device: { id },
+          error: error ? { message: error.message } : undefined,
         });
         listener(error, device);
       },
@@ -291,6 +270,7 @@ export class BleManagerCapture {
       (error, characteristic) => {
         const { value } = characteristic;
         // Note: eventually support using recordValue, maybe stored per characteristic?
+        // TODO: support filter here
         this._captureControl._record({
           type: 'event',
           event: 'characteristic',
@@ -346,6 +326,12 @@ export class BleManagerCaptureControl {
     this.deviceMap = deviceMap;
     this.nameFromUuid = nameFromUuid;
     this.recordRssi = undefined;
+    this.spec = {
+      ['deviceScan']: { allow: Infinity, max: Infinity },
+    };
+    this._specState = {
+      ['deviceScan']: { seen: 0 },
+    };
     this._recordValueQueue = [];
     this._capture({ event: 'init', name: this.captureName });
   }
@@ -358,7 +344,25 @@ export class BleManagerCaptureControl {
     console.log(stringifyBleRecord(record));
   }
 
+  _recordEvent(event, args) {
+    // TODO: if exclude filter call _exclude instead
+    const spec = this.spec[event];
+    if (spec) {
+      ++this._specState[event].seen;
+      if (this._specState[event].seen > spec.keep) {
+        // Note: we have already seen enough of this type of event, so we will exclude this one
+        this._exclude({ type: 'event', event, args });
+      } else {
+        // Note: we might exclude future instances of this event, so we will include the spec in this record
+        this._record({ type: 'event', event, args, spec });
+      }
+    } else {
+      this._record({ type: 'event', event, args });
+    }
+  }
+
   _exclude(item) {
+    // Note: eventually support a "verbose" option for outputting these
     // console.log(`(excluding ${JSON.stringify(item)})`);
   }
 

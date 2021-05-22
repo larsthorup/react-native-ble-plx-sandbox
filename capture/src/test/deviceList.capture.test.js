@@ -29,6 +29,7 @@ describe(captureName, () => {
   before(() => {
     // console.log('Looking for speakers', deviceMap.expected);
     captureControl = new BleManagerCaptureControl({ captureName, deviceMap, nameFromUuid });
+    captureControl.spec.deviceScan = { keep: 1 };
     bleManager = captureControl.bleManagerCapture;
   });
 
