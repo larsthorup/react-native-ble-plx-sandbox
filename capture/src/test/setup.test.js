@@ -1,7 +1,7 @@
 import { PermissionsAndroid } from 'react-native';
+import { assert } from 'chai';
 
-import * as assert from '../lib/assert';
-import { before } from '../lib/testRunner';
+import '../lib/mocha';
 
 before(async () => {
   console.log('On phone: please allow location permission');

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { SafeAreaView, ScrollView, StatusBar, StyleSheet, Text } from 'react-native';
-import { run } from '../lib/testRunner';
-import { TestRunnerEventReporter } from '../lib/TestRunnerEventReporter';
+// import { run } from '../lib/testRunner';
+import { run } from '../lib/mocha';
 import { stringifyTestRunnerEvent } from '../lib/testRunnerJsonProtocol';
 
 const TestRunnerScreen = () => {
@@ -12,10 +12,9 @@ const TestRunnerScreen = () => {
       console.log(stringifyTestRunnerEvent(runnerEvent));
       setProgress(prev => prev.concat([runnerEvent]));
     };
-    const reporter = new TestRunnerEventReporter(log);
     if (!isRunning) {
       setIsRunning(true);
-      run(reporter);
+      run(log);
     }
   }, [isRunning]);
   return (
@@ -35,7 +34,7 @@ const TestRunnerScreen = () => {
               case 'start':
                 return 'Running tests...';
               case 'suite:complete':
-                return `  (${duration} ms)`;
+                return duration !== undefined ? `  (${duration} ms)` : '  complete';
               case 'suite:start':
                 return `> ${name}`;
             }

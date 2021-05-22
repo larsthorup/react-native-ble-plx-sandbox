@@ -1,3 +1,5 @@
+import { TestRunnerEventReporter } from './TestRunnerEventReporter';
+
 class Suite {
   constructor(name) {
     this.name = name;
@@ -32,7 +34,8 @@ export const after = (fn) => {
   currentSuite.afterList.push({ fn, name: 'after' });
 };
 
-export const run = async (reporter) => {
+export const run = async (logger) => {
+  const reporter = new TestRunnerEventReporter(logger);
   reporter.onStart();
   const suites = [];
   await runTestList({ reporter, suites, testList: globalSuite.beforeList });

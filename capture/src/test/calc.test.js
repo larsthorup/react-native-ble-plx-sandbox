@@ -1,5 +1,5 @@
-import * as assert from '../lib/assert';
-import { after, before, describe, it } from '../lib/testRunner';
+import { assert } from 'chai';
+import '../lib/mocha';
 
 describe('calc', () => {
   let count;

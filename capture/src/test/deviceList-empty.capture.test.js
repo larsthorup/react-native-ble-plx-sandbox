@@ -1,6 +1,7 @@
+import '../lib/mocha';
+
 import * as bleService from '../shared/bleService';
 
-import { after, before, describe, it } from '../lib/testRunner';
 import { BleManagerCaptureControl } from '../lib/bleManagerCapture';
 
 const captureName = 'deviceList-empty';
