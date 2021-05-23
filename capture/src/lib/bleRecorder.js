@@ -48,40 +48,6 @@ class BleManagerSpy {
 
   startDeviceScan(uuidList, scanOptions, listener) {
     this._recorder._reported = [];
-    this._bleManager.startDeviceScan(uuidList, scanOptions, (error, device) => {
-      if (error) {
-        const { message } = error;
-        this._recorder._recordEvent('deviceScan', { error: { message } });
-        listener(error, device);
-      } else if (device) {
-        const deviceExpected = this._recorder.deviceMap.expected[device.id];
-        if (deviceExpected) {
-          const { recordId: id } = deviceExpected;
-          const { localName, name } = this._recorder.deviceMap.record[id];
-          const { manufacturerData } = device;
-          this._recorder._recordEvent('deviceScan', {
-            device: { id, localName, manufacturerData, name },
-          });
-          listener(error, device);
-        } else {
-          if (this._recorder._reported.indexOf(device.id) < 0) {
-            this._recorder._log(`(ignoring device with id ${device.id} named ${device.name}. ManufacturerData: ${device.manufacturerData})`);
-            this._recorder._reported.push(device.id);
-          }
-          // Note: exclude unexpected scan responses from capture file for now as they are usually quite noisy
-          // TODO: use filter mechanism for this
-          const { id, name } = device;
-          this._recorder._exclude({
-            type: 'event',
-            event: 'deviceScan',
-            args: {
-              device: { id, name },
-              error: undefined,
-            },
-          });
-        }
-      }
-    });
     this._recorder._record({
       type: 'command',
       command: 'startDeviceScan',
@@ -89,6 +55,48 @@ class BleManagerSpy {
         uuidList,
         scanOptions,
       },
+    });
+    this._bleManager.startDeviceScan(uuidList, scanOptions, (error, device) => {
+      if (error) {
+        const { message } = error;
+        this._recorder._recordEvent('deviceScan', { error: { message } });
+        listener(error, device);
+      } else if (device) {
+        if (this._recorder.deviceMap) {
+          const deviceExpected = this._recorder.deviceMap.expected[device.id];
+          if (deviceExpected) {
+            const { recordId: id } = deviceExpected;
+            const { localName, name } = this._recorder.deviceMap.record[id];
+            const { manufacturerData } = device;
+            this._recorder._recordEvent('deviceScan', {
+              device: { id, localName, manufacturerData, name },
+            });
+            listener(error, device);
+          } else {
+            if (this._recorder._reported.indexOf(device.id) < 0) {
+              this._recorder._log(`(ignoring device with id ${device.id} named ${device.name}. ManufacturerData: ${device.manufacturerData})`);
+              this._recorder._reported.push(device.id);
+            }
+            // Note: exclude unexpected scan responses from capture file for now as they are usually quite noisy
+            // TODO: use filter mechanism for this
+            const { id, name } = device;
+            this._recorder._exclude({
+              type: 'event',
+              event: 'deviceScan',
+              args: {
+                device: { id, name },
+                error: undefined,
+              },
+            });
+          }
+        } else {
+          const { id, localName, name, manufacturerData } = device;
+          this._recorder._recordEvent('deviceScan', {
+            device: { id, localName, manufacturerData, name },
+          });
+          listener(error, device);
+        }
+      }
     });
   }
 
@@ -321,13 +329,11 @@ class BleManagerSpy {
 export class BleRecorder {
   constructor({ bleManager, captureName, deviceMap, logger, nameFromUuid }) {
     this.bleManagerSpy = new BleManagerSpy(this, bleManager);
-    this.captureName = captureName;
+    this.captureName = captureName || 'default';
     this.deviceMap = deviceMap;
     this.nameFromUuid = nameFromUuid;
     this.recordRssi = undefined;
-    this.spec = {
-      ['deviceScan']: { allow: Infinity, max: Infinity },
-    };
+    this.spec = {};
     this._logger = logger || console.log;
     this._specState = {
       ['deviceScan']: { seen: 0 },
@@ -404,7 +410,7 @@ export class BleRecorder {
   }
 
   isExpected(device) {
-    return Boolean(Object.keys(this.deviceMap.expected[device.id]));
+    return this.deviceMap && Boolean(Object.keys(this.deviceMap.expected[device.id]));
   }
 
   queueRecordValue(value) {
