@@ -64,3 +64,5 @@ android/app/src/main/res/raw/app.json
 
 output/
 src/shared/
+.nyc_output/
+coverage/
