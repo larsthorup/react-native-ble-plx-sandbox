@@ -3,7 +3,7 @@
   "scripts": {
     "android": "cd app && npm run android",
     "ci": "npm run ci:capture && npm run test:app",
-    "ci:capture": "cd capture && npm run eslint",
+    "ci:capture": "cd capture && npm run ci",
     "install:app": "cd app && npm install",
     "install:capture": "cd capture && npm install",
     "postinstall": "npm run install:capture && npm run install:app && npm run sync",

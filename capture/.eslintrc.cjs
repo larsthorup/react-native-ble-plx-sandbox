@@ -2,6 +2,7 @@ module.exports = {
   root: true,
   extends: '@react-native-community',
   rules: {
+    'jest/valid-expect': 'off',
     'prettier/prettier': 'off',
   },
   // Note: needed for top level await in testRunnerCli

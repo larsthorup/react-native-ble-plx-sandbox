@@ -14,10 +14,12 @@
     "android:log": "adb logcat -d -v raw -s ReactNativeJS:V",
     "android:stop": "dotenv -- bash -c 'adb shell pm clear $PACKAGE_NAME' || echo Failed to clear app - continuing",
     "capture": "node src/script/testRunnerCli 1",
+    "ci": "npm run eslint && npm run test:lib",
     "eslint": "eslint . --fix --max-warnings 0 --ignore-path .gitignore",
     "ios": "react-native run-ios",
     "start": "react-native start",
-    "test": "npm run eslint && npm run android:build && npm run android:stop && npm run android:install && npm run capture"
+    "test": "npm run ci && npm run android:build && npm run android:stop && npm run android:install && npm run capture",
+    "test:lib": "mocha"
   },
   "dependencies": {
     "@babel/eslint-parser": "^7.14.3",
