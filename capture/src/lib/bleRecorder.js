@@ -11,7 +11,7 @@ const formattedFromBase64 = (value) => {
   }
 };
 
-class BleManagerSpy {
+export class BleManagerSpy {
   constructor(recorder, bleManager) {
     this._recorder = recorder;
     this._bleManager = bleManager;
@@ -33,10 +33,6 @@ class BleManagerSpy {
   }
 
   onStateChange(listener, emitCurrentState) {
-    this._bleManager.onStateChange((powerState) => {
-      this._recorder._recordEvent('stateChange', { powerState });
-      listener(powerState);
-    }, emitCurrentState);
     this._recorder._record({
       type: 'command',
       command: 'onStateChange',
@@ -44,6 +40,10 @@ class BleManagerSpy {
         emitCurrentState,
       },
     });
+    this._bleManager.onStateChange((powerState) => {
+      this._recorder._recordEvent('stateChange', { powerState });
+      listener(powerState);
+    }, emitCurrentState);
   }
 
   startDeviceScan(uuidList, scanOptions, listener) {
@@ -63,10 +63,8 @@ class BleManagerSpy {
         listener(error, device);
       } else if (device) {
         if (this._recorder.deviceMap) {
-          const deviceExpected = this._recorder.deviceMap.expected[device.id];
-          if (deviceExpected) {
-            const { recordId: id } = deviceExpected;
-            const { localName, name } = this._recorder.deviceMap.record[id];
+          if (this._recorder.isExpected(device)) {
+            const { id, localName, name } = this._recorder._recordDevice(device.id);
             const { manufacturerData } = device;
             this._recorder._recordEvent('deviceScan', {
               device: { id, localName, manufacturerData, name },
@@ -134,7 +132,7 @@ class BleManagerSpy {
   }
 
   async connectToDevice(deviceId, options) {
-    const device = await this._bleManager.connectToDevice(deviceId);
+    const device = await this._bleManager.connectToDevice(deviceId, options);
     const { id } = this._recorder._recordDevice(deviceId);
     this._recorder._record({
       type: 'command',
@@ -152,24 +150,13 @@ class BleManagerSpy {
       command: 'connectedDevices',
       request: { serviceUUIDs },
       response: devices.map(({ id }) => ({
-        id: this._recorder._recordDevice(id),
+        id: this._recorder._recordDevice(id).id,
       })),
     });
     return devices;
   }
 
   async onDeviceDisconnected(deviceId, listener) {
-    const subscription = await this._bleManager.onDeviceDisconnected(
-      deviceId,
-      (error, device) => {
-        const { recordId: id } = this._recorder._recordDevice(deviceId);
-        this._recorder._recordEvent('deviceDisconnected', {
-          device: { id },
-          error: error ? { message: error.message } : undefined,
-        });
-        listener(error, device);
-      },
-    );
     const { id } = this._recorder._recordDevice(deviceId);
     this._recorder._record({
       type: 'command',
@@ -178,6 +165,18 @@ class BleManagerSpy {
         id,
       },
     });
+    const subscription = await this._bleManager.onDeviceDisconnected(
+      deviceId,
+      (error, device) => {
+        this._recorder._recordEvent('deviceDisconnected', {
+          device: {
+            ...this._recorder._recordDevice(device.id),
+          },
+          ...(error && { error: { message: error.message } }),
+        });
+        listener(error, device);
+      },
+    );
     return subscription;
   }
 
@@ -212,7 +211,7 @@ class BleManagerSpy {
       type: 'command',
       command: 'devices',
       request: {
-        deviceIdentifiers: deviceIdentifiers.map(({ id }) => this._recorder._recordDevice(id).id),
+        deviceIdentifiers: deviceIdentifiers.map((id) => this._recorder._recordDevice(id).id),
       },
       response: deviceList.map(({ id }) => this._recorder._recordDevice(id)),
     });
@@ -270,31 +269,6 @@ class BleManagerSpy {
 
   async monitorCharacteristicForDevice(deviceId, serviceUUID, characteristicUUID, listener) {
     const { id } = this._recorder._recordDevice(deviceId);
-    const subscription = await this._bleManager.monitorCharacteristicForDevice(
-      deviceId,
-      serviceUUID,
-      characteristicUUID,
-      (error, characteristic) => {
-        const { value } = characteristic;
-        // Note: eventually support using recordValue, maybe stored per characteristic?
-        // TODO: support filter here
-        this._recorder._record({
-          type: 'event',
-          event: 'characteristic',
-          autoPlay: true,
-          args: {
-            characteristic: {
-              serviceUUID,
-              characteristicUUID,
-              value,
-            },
-            error: error ? { message: error.message } : undefined,
-          },
-          ...(this._recorder._debugFor({ serviceUUID, characteristicUUID, value })),
-        });
-        listener(error, characteristic);
-      },
-    );
     this._recorder._record({
       type: 'command',
       command: 'monitorCharacteristicForDevice',
@@ -305,6 +279,31 @@ class BleManagerSpy {
       },
       ...(this._recorder._debugFor({ serviceUUID, characteristicUUID })),
     });
+    const subscription = await this._bleManager.monitorCharacteristicForDevice(
+      deviceId,
+      serviceUUID,
+      characteristicUUID,
+      (error, characteristic) => {
+        const { uuid, value } = characteristic;
+        // Note: eventually support using recordValue, maybe stored per characteristic?
+        // TODO: support filter here
+        this._recorder._record({
+          type: 'event',
+          event: 'characteristic',
+          autoPlay: true,
+          args: {
+            characteristic: {
+              serviceUUID,
+              uuid,
+              value,
+            },
+            error: error ? { message: error.message } : undefined,
+          },
+          ...(this._recorder._debugFor({ serviceUUID, uuid, value })),
+        });
+        listener(error, characteristic);
+      },
+    );
     return subscription;
   }
 
@@ -331,7 +330,7 @@ export class BleRecorder {
     this.bleManagerSpy = new BleManagerSpy(this, bleManager);
     this.captureName = captureName || 'default';
     this.deviceMap = deviceMap;
-    this.nameFromUuid = nameFromUuid;
+    this.nameFromUuid = nameFromUuid || {};
     this.recordRssi = undefined;
     this.spec = {};
     this._logger = logger || console.log;
@@ -379,21 +378,32 @@ export class BleRecorder {
   _debugFor({ serviceUUID, characteristicUUID, value }) {
     const serviceName = this.nameFromUuid[serviceUUID];
     const characteristicName = this.nameFromUuid[characteristicUUID];
-    return {
-      debug: {
-        ...(serviceName && { serviceUUID: serviceName }),
-        ...(characteristicName && { characteristicUUID: characteristicName }),
-        ...(value !== undefined && { value: formattedFromBase64(value) }),
-      },
-    };
+    if (serviceName || characteristicName || value !== undefined) {
+      return {
+        debug: {
+          ...(serviceName && { serviceUUID: serviceName }),
+          ...(characteristicName && { characteristicUUID: characteristicName }),
+          ...(value !== undefined && { value: formattedFromBase64(value) }),
+        },
+      };
+    } else {
+      return {};
+    }
   }
 
   _recordDevice(deviceId) {
-    const { recordId: id } = this.deviceMap.expected[deviceId];
-    return {
-      id,
-      ...(this.deviceMap.record[id]),
-    };
+    if (this.deviceMap && this.deviceMap.expected[deviceId]) {
+      const { recordId: id } = this.deviceMap.expected[deviceId];
+      return {
+        id,
+        ...(this.deviceMap.record[id]),
+      };
+    } else {
+      // Note: no device mapping for this device
+      return {
+        id: deviceId,
+      };
+    }
   }
 
   _dequeueRecordValue() {
@@ -410,7 +420,7 @@ export class BleRecorder {
   }
 
   isExpected(device) {
-    return this.deviceMap && Boolean(Object.keys(this.deviceMap.expected[device.id]));
+    return this.deviceMap && this.deviceMap.expected[device.id];
   }
 
   queueRecordValue(value) {
