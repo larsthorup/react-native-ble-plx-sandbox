@@ -12,10 +12,10 @@ const formattedFromBase64 = (value) => {
   }
 };
 
-export class BleManagerCapture {
-  constructor(captureControl) {
-    this._captureControl = captureControl;
-    this._bleManager = new BleManager();
+class BleManagerSpy {
+  constructor(recorder, bleManager) {
+    this._recorder = recorder;
+    this._bleManager = bleManager || new BleManager();
   }
 
   destroy() {
@@ -24,7 +24,7 @@ export class BleManagerCapture {
 
   async state() {
     const state = await this._bleManager.state();
-    this._captureControl._record({
+    this._recorder._record({
       type: 'command',
       command: 'state',
       request: {},
@@ -35,10 +35,10 @@ export class BleManagerCapture {
 
   onStateChange(listener, emitCurrentState) {
     this._bleManager.onStateChange((powerState) => {
-      this._captureControl._recordEvent('stateChange', { powerState });
+      this._recorder._recordEvent('stateChange', { powerState });
       listener(powerState);
     }, emitCurrentState);
-    this._captureControl._record({
+    this._recorder._record({
       type: 'command',
       command: 'onStateChange',
       request: {
@@ -48,31 +48,31 @@ export class BleManagerCapture {
   }
 
   startDeviceScan(uuidList, scanOptions, listener) {
-    this._captureControl._reported = [];
+    this._recorder._reported = [];
     this._bleManager.startDeviceScan(uuidList, scanOptions, (error, device) => {
       if (error) {
         const { message } = error;
-        this._captureControl._recordEvent('deviceScan', { error: { message } });
+        this._recorder._recordEvent('deviceScan', { error: { message } });
         listener(error, device);
       } else if (device) {
-        const deviceExpected = this._captureControl.deviceMap.expected[device.id];
+        const deviceExpected = this._recorder.deviceMap.expected[device.id];
         if (deviceExpected) {
           const { recordId: id } = deviceExpected;
-          const { localName, name } = this._captureControl.deviceMap.record[id];
+          const { localName, name } = this._recorder.deviceMap.record[id];
           const { manufacturerData } = device;
-          this._captureControl._recordEvent('deviceScan', {
+          this._recorder._recordEvent('deviceScan', {
             device: { id, localName, manufacturerData, name },
           });
           listener(error, device);
         } else {
-          if (this._captureControl._reported.indexOf(device.id) < 0) {
-            console.log(`(ignoring device with id ${device.id} named ${device.name}. ManufacturerData: ${device.manufacturerData})`);
-            this._captureControl._reported.push(device.id);
+          if (this._recorder._reported.indexOf(device.id) < 0) {
+            this._recorder._log(`(ignoring device with id ${device.id} named ${device.name}. ManufacturerData: ${device.manufacturerData})`);
+            this._recorder._reported.push(device.id);
           }
           // Note: exclude unexpected scan responses from capture file for now as they are usually quite noisy
           // TODO: use filter mechanism for this
           const { id, name } = device;
-          this._captureControl._exclude({
+          this._recorder._exclude({
             type: 'event',
             event: 'deviceScan',
             args: {
@@ -83,7 +83,7 @@ export class BleManagerCapture {
         }
       }
     });
-    this._captureControl._record({
+    this._recorder._record({
       type: 'command',
       command: 'startDeviceScan',
       request: {
@@ -95,7 +95,7 @@ export class BleManagerCapture {
 
   stopDeviceScan() {
     this._bleManager.stopDeviceScan();
-    this._captureControl._record({
+    this._recorder._record({
       type: 'command',
       command: 'stopDeviceScan',
     });
@@ -103,8 +103,8 @@ export class BleManagerCapture {
 
   async isDeviceConnected(deviceId) {
     const response = await this._bleManager.isDeviceConnected(deviceId);
-    const { id } = this._captureControl._recordDevice(deviceId);
-    this._captureControl._record({
+    const { id } = this._recorder._recordDevice(deviceId);
+    this._recorder._record({
       type: 'command',
       command: 'isDeviceConnected',
       request: { id },
@@ -115,9 +115,9 @@ export class BleManagerCapture {
 
   async readRSSIForDevice(deviceId) {
     const response = await this._bleManager.readRSSIForDevice(deviceId);
-    const { id } = this._captureControl._recordDevice(deviceId);
-    const rssi = this._captureControl.recordRssi !== undefined ? this._captureControl.recordRssi : response.rssi;
-    this._captureControl._record({
+    const { id } = this._recorder._recordDevice(deviceId);
+    const rssi = this._recorder.recordRssi !== undefined ? this._recorder.recordRssi : response.rssi;
+    this._recorder._record({
       type: 'command',
       command: 'readRSSIForDevice',
       request: { id },
@@ -128,8 +128,8 @@ export class BleManagerCapture {
 
   async connectToDevice(deviceId, options) {
     const device = await this._bleManager.connectToDevice(deviceId);
-    const { id } = this._captureControl._recordDevice(deviceId);
-    this._captureControl._record({
+    const { id } = this._recorder._recordDevice(deviceId);
+    this._recorder._record({
       type: 'command',
       command: 'connectToDevice',
       request: { id, options },
@@ -140,12 +140,12 @@ export class BleManagerCapture {
 
   async connectedDevices(serviceUUIDs) {
     const devices = await this._bleManager.connectedDevices(serviceUUIDs);
-    this._captureControl._record({
+    this._recorder._record({
       type: 'command',
       command: 'connectedDevices',
       request: { serviceUUIDs },
       response: devices.map(({ id }) => ({
-        id: this._captureControl._recordDevice(id),
+        id: this._recorder._recordDevice(id),
       })),
     });
     return devices;
@@ -155,16 +155,16 @@ export class BleManagerCapture {
     const subscription = await this._bleManager.onDeviceDisconnected(
       deviceId,
       (error, device) => {
-        const { recordId: id } = this._captureControl._recordDevice(deviceId);
-        this._captureControl._recordEvent('deviceDisconnected', {
+        const { recordId: id } = this._recorder._recordDevice(deviceId);
+        this._recorder._recordEvent('deviceDisconnected', {
           device: { id },
           error: error ? { message: error.message } : undefined,
         });
         listener(error, device);
       },
     );
-    const { id } = this._captureControl._recordDevice(deviceId);
-    this._captureControl._record({
+    const { id } = this._recorder._recordDevice(deviceId);
+    this._recorder._record({
       type: 'command',
       command: 'onDeviceDisconnected',
       request: {
@@ -176,8 +176,8 @@ export class BleManagerCapture {
 
   async requestMTUForDevice(deviceId, mtu) {
     const device = await this._bleManager.requestMTUForDevice(deviceId, mtu);
-    const { id } = this._captureControl._recordDevice(deviceId);
-    this._captureControl._record({
+    const { id } = this._recorder._recordDevice(deviceId);
+    this._recorder._record({
       type: 'command',
       command: 'requestMTUForDevice',
       request: { id, mtu },
@@ -191,8 +191,8 @@ export class BleManagerCapture {
 
   async discoverAllServicesAndCharacteristicsForDevice(deviceId) {
     await this._bleManager.discoverAllServicesAndCharacteristicsForDevice(deviceId);
-    const { id } = this._captureControl._recordDevice(deviceId);
-    this._captureControl._record({
+    const { id } = this._recorder._recordDevice(deviceId);
+    this._recorder._record({
       type: 'command',
       command: 'discoverAllServicesAndCharacteristicsForDevice',
       request: { id },
@@ -201,21 +201,21 @@ export class BleManagerCapture {
 
   async devices(deviceIdentifiers) {
     const deviceList = await this._bleManager.devices(deviceIdentifiers);
-    this._captureControl._record({
+    this._recorder._record({
       type: 'command',
       command: 'devices',
       request: {
-        deviceIdentifiers: deviceIdentifiers.map(({ id }) => this._captureControl._recordDevice(id).id),
+        deviceIdentifiers: deviceIdentifiers.map(({ id }) => this._recorder._recordDevice(id).id),
       },
-      response: deviceList.map(({ id }) => this._captureControl._recordDevice(id)),
+      response: deviceList.map(({ id }) => this._recorder._recordDevice(id)),
     });
     return deviceList;
   }
 
   async servicesForDevice(deviceId) {
     const services = await this._bleManager.servicesForDevice(deviceId);
-    const { id } = this._captureControl._recordDevice(deviceId);
-    this._captureControl._record({
+    const { id } = this._recorder._recordDevice(deviceId);
+    this._recorder._record({
       type: 'command',
       command: 'servicesForDevice',
       request: { id },
@@ -226,8 +226,8 @@ export class BleManagerCapture {
 
   async characteristicsForDevice(deviceId, serviceUUID) {
     const characteristics = await this._bleManager.characteristicsForDevice(deviceId, serviceUUID);
-    const { id } = this._captureControl._recordDevice(deviceId);
-    this._captureControl._record({
+    const { id } = this._recorder._recordDevice(deviceId);
+    this._recorder._record({
       type: 'command',
       command: 'characteristicsForDevice',
       request: { id, serviceUUID },
@@ -242,10 +242,10 @@ export class BleManagerCapture {
       serviceUUID,
       characteristicUUID,
     );
-    const { id } = this._captureControl._recordDevice(deviceId);
-    const recordValue = this._captureControl._dequeueRecordValue();
+    const { id } = this._recorder._recordDevice(deviceId);
+    const recordValue = this._recorder._dequeueRecordValue();
     const value = recordValue !== undefined ? recordValue : characteristic.value;
-    this._captureControl._record({
+    this._recorder._record({
       type: 'command',
       command: 'readCharacteristicForDevice',
       request: {
@@ -256,13 +256,13 @@ export class BleManagerCapture {
       response: {
         value,
       },
-      ...(this._captureControl._debugFor({ serviceUUID, characteristicUUID, value })),
+      ...(this._recorder._debugFor({ serviceUUID, characteristicUUID, value })),
     });
     return characteristic;
   }
 
   async monitorCharacteristicForDevice(deviceId, serviceUUID, characteristicUUID, listener) {
-    const { id } = this._captureControl._recordDevice(deviceId);
+    const { id } = this._recorder._recordDevice(deviceId);
     const subscription = await this._bleManager.monitorCharacteristicForDevice(
       deviceId,
       serviceUUID,
@@ -271,7 +271,7 @@ export class BleManagerCapture {
         const { value } = characteristic;
         // Note: eventually support using recordValue, maybe stored per characteristic?
         // TODO: support filter here
-        this._captureControl._record({
+        this._recorder._record({
           type: 'event',
           event: 'characteristic',
           autoPlay: true,
@@ -283,12 +283,12 @@ export class BleManagerCapture {
             },
             error: error ? { message: error.message } : undefined,
           },
-          ...(this._captureControl._debugFor({ serviceUUID, characteristicUUID, value })),
+          ...(this._recorder._debugFor({ serviceUUID, characteristicUUID, value })),
         });
         listener(error, characteristic);
       },
     );
-    this._captureControl._record({
+    this._recorder._record({
       type: 'command',
       command: 'monitorCharacteristicForDevice',
       request: {
@@ -296,15 +296,15 @@ export class BleManagerCapture {
         serviceUUID,
         characteristicUUID,
       },
-      ...(this._captureControl._debugFor({ serviceUUID, characteristicUUID })),
+      ...(this._recorder._debugFor({ serviceUUID, characteristicUUID })),
     });
     return subscription;
   }
 
   async writeCharacteristicWithResponseForDevice(deviceId, serviceUUID, characteristicUUID, value) {
     const response = await this._bleManager.writeCharacteristicWithResponseForDevice(deviceId, serviceUUID, characteristicUUID, value);
-    const { id } = this._captureControl._recordDevice(deviceId);
-    this._captureControl._record({
+    const { id } = this._recorder._recordDevice(deviceId);
+    this._recorder._record({
       type: 'command',
       command: 'writeCharacteristicWithResponseForDevice',
       request: {
@@ -313,15 +313,15 @@ export class BleManagerCapture {
         characteristicUUID,
         value,
       },
-      ...(this._captureControl._debugFor({ serviceUUID, characteristicUUID, value })),
+      ...(this._recorder._debugFor({ serviceUUID, characteristicUUID, value })),
     });
     return response;
   }
 }
 
-export class BleManagerCaptureControl {
-  constructor({ captureName, deviceMap, nameFromUuid }) {
-    this.bleManagerCapture = new BleManagerCapture(this);
+export class BleRecorder {
+  constructor({ bleManager, captureName, deviceMap, logger, nameFromUuid }) {
+    this.bleManagerSpy = new BleManagerSpy(this, bleManager);
     this.captureName = captureName;
     this.deviceMap = deviceMap;
     this.nameFromUuid = nameFromUuid;
@@ -329,6 +329,7 @@ export class BleManagerCaptureControl {
     this.spec = {
       ['deviceScan']: { allow: Infinity, max: Infinity },
     };
+    this._logger = logger || console.log;
     this._specState = {
       ['deviceScan']: { seen: 0 },
     };
@@ -336,12 +337,16 @@ export class BleManagerCaptureControl {
     this._capture({ event: 'init', name: this.captureName });
   }
 
+  _log(line) {
+    this._logger(line);
+  }
+
   _capture(captureEvent) {
-    console.log(stringifyBleCaptureEvent(captureEvent));
+    this._log(stringifyBleCaptureEvent(captureEvent));
   }
 
   _record(record) {
-    console.log(stringifyBleRecord(record));
+    this._log(stringifyBleRecord(record));
   }
 
   _recordEvent(event, args) {
@@ -363,7 +368,7 @@ export class BleManagerCaptureControl {
 
   _exclude(item) {
     // Note: eventually support a "verbose" option for outputting these
-    // console.log(`(excluding ${JSON.stringify(item)})`);
+    // this._log(`(excluding ${JSON.stringify(item)})`);
   }
 
   _debugFor({ serviceUUID, characteristicUUID, value }) {
@@ -395,7 +400,7 @@ export class BleManagerCaptureControl {
   }
 
   close() {
-    this.bleManagerCapture.destroy();
+    this.bleManagerSpy.destroy();
     this._capture({ event: 'save', name: this.captureName });
   }
 

@@ -5,13 +5,13 @@ import * as bleService from '../shared/bleService';
 import { characteristic, nameFromUuid, service } from '../shared/bleConstants';
 
 import { base64FromUint8, uint8FromBase64 } from '../lib/base64';
-import { BleManagerCaptureControl } from '../lib/bleManagerCapture';
+import { BleRecorder } from '../lib/bleRecorder';
 
 const captureName = 'deviceList';
 
 describe(captureName, () => {
   let bleManager;
-  let captureControl;
+  let bleRecorder;
   let device;
   const deviceMap = {
     expected: {
@@ -29,15 +29,19 @@ describe(captureName, () => {
 
   before(() => {
     // console.log('Looking for speakers', deviceMap.expected);
-    captureControl = new BleManagerCaptureControl({ captureName, deviceMap, nameFromUuid });
-    captureControl.spec.deviceScan = { keep: 1 };
-    bleManager = captureControl.bleManagerCapture;
+    bleRecorder = new BleRecorder({ captureName, deviceMap, nameFromUuid });
+    bleRecorder.spec.deviceScan = { keep: 1 };
+    bleManager = bleRecorder.bleManagerSpy;
+  });
+
+  after(() => {
+    bleRecorder.close();
   });
 
   it('should receive scan result', async () => {
     device = await new Promise((resolve, reject) => {
       bleService.startScanning(bleManager, (error, d) => {
-        if (!error && captureControl.isExpected(d)) {
+        if (!error && bleRecorder.isExpected(d)) {
           resolve(d);
         } else if (error) {
           console.log('error in startDeviceScan', error);
@@ -47,7 +51,7 @@ describe(captureName, () => {
         }
       });
     });
-    captureControl.label('scanned');
+    bleRecorder.label('scanned');
   });
 
   it('should connect to device', async () => {
@@ -62,7 +66,7 @@ describe(captureName, () => {
     const { id } = device;
     const services = await bleManager.servicesForDevice(id);
     assert.ok(services.find((s) => s.uuid.toLowerCase() === service.battery.uuid.toLowerCase()));
-    captureControl.queueRecordValue(base64FromUint8(42));
+    bleRecorder.queueRecordValue(base64FromUint8(42));
     const { value } = await bleManager.readCharacteristicForDevice(id, service.battery.uuid, characteristic.batteryLevel.uuid);
     const batteryLevel = uint8FromBase64(value);
     console.log(`(actual batteryLevel = ${batteryLevel})`);
@@ -72,14 +76,10 @@ describe(captureName, () => {
 
   it('should read signal strength', async () => {
     const { id } = device;
-    captureControl.recordRssi = -42;
+    bleRecorder.recordRssi = -42;
     const { rssi } = await bleManager.readRSSIForDevice(id);
     console.log(`(actual rssi = ${rssi})`);
     assert.ok(rssi < 0, `Expected ${rssi} < 0`);
     assert.ok(rssi >= -127, `Expected ${rssi} >= -127`);
-  });
-
-  after(() => {
-    captureControl.close();
   });
 });

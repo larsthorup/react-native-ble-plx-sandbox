@@ -2,13 +2,13 @@ import '../lib/mocha';
 
 import * as bleService from '../shared/bleService';
 
-import { BleManagerCaptureControl } from '../lib/bleManagerCapture';
+import { BleRecorder } from '../lib/bleRecorder';
 
 const captureName = 'deviceList-empty';
 
 describe(captureName, () => {
   let bleManager;
-  let captureControl;
+  let bleRecorder;
   const deviceMap = {
     expected: {},
     record: {},
@@ -16,8 +16,8 @@ describe(captureName, () => {
 
   before(() => {
     // console.log('Looking for speakers', expectedDeviceNames);
-    captureControl = new BleManagerCaptureControl({ captureName, deviceMap });
-    bleManager = captureControl.bleManagerCapture;
+    bleRecorder = new BleRecorder({ captureName, deviceMap });
+    bleManager = bleRecorder.bleManagerSpy;
   });
 
   it('should receive no scan results', async () => {
@@ -33,10 +33,10 @@ describe(captureName, () => {
         }
       });
     });
-    captureControl.label('scanned');
+    bleRecorder.label('scanned');
   });
 
   after(() => {
-    captureControl.close();
+    bleRecorder.close();
   });
 });
