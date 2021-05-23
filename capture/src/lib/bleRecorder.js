@@ -1,7 +1,6 @@
 import * as util from 'util';
-import { BleManager } from 'react-native-ble-plx';
-import { bufferFromBase64, isPrintableFromBase64, printableFromBase64 } from './base64';
-import { stringifyBleCaptureEvent, stringifyBleRecord } from './bleCaptureJsonProtocol';
+import { bufferFromBase64, isPrintableFromBase64, printableFromBase64 } from './base64.js';
+import { stringifyBleCaptureEvent, stringifyBleRecord } from './bleCaptureJsonProtocol.js';
 
 const formattedFromBase64 = (value) => {
   const valueBufferFormatted = util.format(bufferFromBase64(value));
@@ -15,7 +14,7 @@ const formattedFromBase64 = (value) => {
 class BleManagerSpy {
   constructor(recorder, bleManager) {
     this._recorder = recorder;
-    this._bleManager = bleManager || new BleManager();
+    this._bleManager = bleManager;
   }
 
   destroy() {

@@ -3,6 +3,7 @@ import '../lib/mocha';
 import * as bleService from '../shared/bleService';
 
 import { BleRecorder } from '../lib/bleRecorder';
+import { BleManager } from 'react-native-ble-plx';
 
 const captureName = 'deviceList-empty';
 
@@ -16,7 +17,11 @@ describe(captureName, () => {
 
   before(() => {
     // console.log('Looking for speakers', expectedDeviceNames);
-    bleRecorder = new BleRecorder({ captureName, deviceMap });
+    bleRecorder = new BleRecorder({
+      bleManager: new BleManager(),
+      captureName,
+      deviceMap,
+    });
     bleManager = bleRecorder.bleManagerSpy;
   });
 

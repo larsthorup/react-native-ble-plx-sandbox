@@ -1,6 +1,8 @@
 import { assert } from 'chai';
 import '../lib/mocha';
 
+import { BleManager } from 'react-native-ble-plx';
+
 import * as bleService from '../shared/bleService';
 import { characteristic, nameFromUuid, service } from '../shared/bleConstants';
 
@@ -29,7 +31,12 @@ describe(captureName, () => {
 
   before(() => {
     // console.log('Looking for speakers', deviceMap.expected);
-    bleRecorder = new BleRecorder({ captureName, deviceMap, nameFromUuid });
+    bleRecorder = new BleRecorder({
+      bleManager: new BleManager(),
+      captureName,
+      deviceMap,
+      nameFromUuid,
+    });
     bleRecorder.spec.deviceScan = { keep: 1 };
     bleManager = bleRecorder.bleManagerSpy;
   });
