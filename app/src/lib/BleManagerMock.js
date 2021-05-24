@@ -303,7 +303,7 @@ export class BleManagerMock {
     return response;
   }
 
-  async monitorCharacteristicForDevice(id, serviceUUID, characteristicUUID, listener) {
+  monitorCharacteristicForDevice(id, serviceUUID, characteristicUUID, listener) {
     this._expectCommand({ command: 'monitorCharacteristicForDevice', request: { id, serviceUUID, characteristicUUID } });
     this._characteristicListener[serviceUUID] = this._characteristicListener[serviceUUID] || {};
     if (this._characteristicListener[serviceUUID][characteristicUUID]) {
