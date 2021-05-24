@@ -6,7 +6,7 @@
     "android": "react-native run-android",
     "eslint": "eslint . --fix --max-warnings 0 --ignore-path .gitignore",
     "ios": "react-native run-ios",
-    "jest": "jest",
+    "jest": "jest --coverage",
     "android:log": "adb logcat *:S ReactNative:V ReactNativeJS:V",
     "start": "react-native start",
     "test": "npm run eslint && npm run jest"
