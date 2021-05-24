@@ -66,3 +66,5 @@ output/
 src/shared/
 .nyc_output/
 coverage/
+
+artifact/testLauncher.test.simulated.capture.json

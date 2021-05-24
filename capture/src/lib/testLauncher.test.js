@@ -1,11 +1,12 @@
 import * as fs from 'fs';
 import { expect } from 'chai';
-import { launch } from './testLauncher.js';
+import * as cp from 'child_process';
+import * as path from 'path';
 import { Readable } from 'stream';
+
 import chalk from 'chalk';
-import Mocha from 'mocha';
-import { MochaEventReporter } from './MochaEventReporter.js';
-import { stringifyTestRunnerEvent } from './testRunnerJsonProtocol.js';
+
+import { launch } from './testLauncher.js';
 
 const appName = 'SomeAppName';
 const env = {
@@ -15,7 +16,7 @@ const env = {
 const execMock = (expected) => {
   let next = 0;
   return async (cmdActual) => {
-    const { cmd: cmdExpected, effect, result } = expected[next];
+    const { cmd: cmdExpected, effect, result } = expected[next] || {};
     expect(cmdActual).to.equal(cmdExpected);
     ++next;
     if (effect) {
@@ -25,74 +26,149 @@ const execMock = (expected) => {
   };
 };
 
+const createExecMock = () => {
+  return execMock([
+    { cmd: 'adb logcat -c' },
+    { cmd: `adb shell pm clear ${env.PACKAGE_NAME}` },
+    { cmd: `adb shell am start -n '${env.PACKAGE_NAME}/.MainActivity'` },
+    { cmd: 'adb shell uiautomator dump', result: { stdout: 'UI hierchary dumped to: /sdcard/window_dump.xml' } },
+    {
+      cmd: 'adb pull /sdcard/window_dump.xml ./output/view.xml', effect: () => {
+        const viewXml = '<node index="0" text="While using the app" resource-id="com.android.permissioncontroller:id/permission_allow_foreground_only_button" class="android.widget.Button" package="com.google.android.permissioncontroller" content-desc="" checkable="false" checked="false" clickable="true" enabled="true" focusable="true" focused="false" scrollable="false" long-clickable="false" password="false" selected="false" bounds="[72,1667][1008,1775]" />';
+        fs.writeFileSync('./output/view.xml', viewXml);
+      },
+    },
+    { cmd: 'adb shell input tap 540 1721' },
+  ]);
+};
+
+const mockSpawn = async () => {
+  // Note: run mocha out of process to allow the test and the imported files to use ES6 modules,
+  // which wouldn't work with mocha.addFile()
+  const mochaConfigPath = path.resolve('./src/lib/test/.mocharc.cjs');
+  const { stdout: testRunnerOutput } = await new Promise((resolve, reject) => {
+    cp.exec(`mocha --config ${mochaConfigPath}`, (error, stdout, stderr) => {
+      if (error && stderr) {
+        reject(error);
+      } else {
+        resolve({
+          exitCode: error ? error.code : 0,
+          stdout,
+        });
+      }
+    });
+  });
+
+  const spawn = (cmd, args) => {
+    expect(cmd).to.equal('adb');
+    expect(args).to.deep.equal(['logcat', '-v', 'raw', '-s', 'ReactNativeJS:V']);
+
+    const stdout = Readable.from([testRunnerOutput]);
+    return {
+      stdout,
+      kill: () => { },
+    };
+  };
+  return spawn;
+};
+
+const expectOutputMatch = (output, expectedOutputRegExp) => {
+  for (let i = 0; i < output.length; ++i) {
+    const regexp = new RegExp(expectedOutputRegExp[i]
+      .replaceAll('\u001b[', '\u001b\\[')
+      .replaceAll('(', '\\(')
+      .replaceAll(')', '\\)'),
+    );
+    try {
+      expect(output[i]).to.match(regexp);
+    } catch (err) {
+      console.log(output);
+      throw err;
+    }
+  }
+};
+
 describe('testLauncher', () => {
   describe('passing with expected number of failures', () => {
     it('exits with 0 and produces correct output and capture file', async () => {
-      const exec = execMock([
-        { cmd: 'adb logcat -c' },
-        { cmd: `adb shell pm clear ${env.PACKAGE_NAME}` },
-        { cmd: `adb shell am start -n '${env.PACKAGE_NAME}/.MainActivity'` },
-        { cmd: 'adb shell uiautomator dump', result: { stdout: 'UI hierchary dumped to: /sdcard/window_dump.xml' } },
-        {
-          cmd: 'adb pull /sdcard/window_dump.xml ./output/view.xml', effect: () => {
-            const viewXml = '<node index="0" text="While using the app" resource-id="com.android.permissioncontroller:id/permission_allow_foreground_only_button" class="android.widget.Button" package="com.google.android.permissioncontroller" content-desc="" checkable="false" checked="false" clickable="true" enabled="true" focusable="true" focused="false" scrollable="false" long-clickable="false" password="false" selected="false" bounds="[72,1667][1008,1775]" />';
-            fs.writeFileSync('./output/view.xml', viewXml);
-          },
-        },
-        { cmd: 'adb shell input tap 540 1721' },
-      ]);
+      const exec = createExecMock();
       const expectedFailCount = 1;
       const output = [];
       const log = (line) => output.push(line);
-
-      const mocha = new Mocha();
-      mocha.addFile('./src/lib/testLauncher.test.simulated.cjs');
-      const mochaOutput = [];
-      const mochaLogger = (runnerEvent) => mochaOutput.push(stringifyTestRunnerEvent(runnerEvent));
-      mocha.reporter(MochaEventReporter, { logger: mochaLogger });
-      const mochaFailureCount = await new Promise((resolve) => {
-        mocha.run(resolve);
-      });
-      expect(mochaFailureCount).to.equal(expectedFailCount);
-      const testRunnerOutput = mochaOutput.join('\n');
-
-      const spawn = (cmd, args) => {
-        expect(cmd).to.equal('adb');
-        expect(args).to.deep.equal(['logcat', '-v', 'raw', '-s', 'ReactNativeJS:V']);
-
-        const stdout = Readable.from([testRunnerOutput]);
-        return {
-          stdout,
-          kill: () => { },
-        };
-      };
+      const spawn = await mockSpawn();
       const { exitCode } = await launch({ appName, env, exec, expectedFailCount, log, spawn });
       expect(exitCode).to.equal(0);
-      const expectedOutput = [
+      const capturePath = 'artifact/testLauncher.test.simulated.capture.json';
+      const expectedOutputRegExp = [
         'Launching test runner on device...',
         'Allowing app to run with necessary permissions',
         'Running tests...',
         '> ',
         '> simulated',
+        `    ${chalk.grey('2 \\+ 2 === 4')}`,
         `  ${chalk.green('√')} should add (\\d+ ms)`,
         `  ${chalk.red('X')} should fail: expected 1 to equal 4 (\\d+ ms)`,
+        '> state',
+        `(BLE capture file saved in ${capturePath}: 1 records)`,
+        `  ${chalk.green('√')} should record command with request and response (\\d+ ms)`,
+        '  (undefined ms)', // TODO: undefined??
         '  (undefined ms)',
         '  (undefined ms)',
         'Done!',
         'Success (1 test failed as expected)!',
       ];
-      for (let i = 0; i < output.length; ++i) {
-        const regex = new RegExp(expectedOutput[i]
-          .replaceAll('\u001b[', '\u001b\\[')
-          .replaceAll('(', '\\(')
-          .replaceAll(')', '\\)'),
-        );
-        expect(output[i]).to.match(regex);
-      }
-      // TODO: capture file
+      expectOutputMatch(output, expectedOutputRegExp);
+      const captureFile = JSON.parse(fs.readFileSync(capturePath));
+      expect(captureFile).to.deep.equal([
+        {
+          'type': 'command',
+          'command': 'state',
+          'request': {},
+          'response': 'some-state',
+        },
+      ]);
     });
   });
 
   describe('failing', () => {
+    it('exits with 1 and produces correct output and capture file', async () => {
+      // given an expectation of no tests to fail
+      const expectedFailCount = 0;
+      const exec = createExecMock();
+      const output = [];
+      const log = (line) => output.push(line);
+      const spawn = await mockSpawn();
+      const { exitCode } = await launch({ appName, env, exec, expectedFailCount, log, spawn });
+      expect(exitCode).to.equal(1);
+      const capturePath = 'artifact/testLauncher.test.simulated.capture.json';
+      const expectedOutputRegExp = [
+        'Launching test runner on device...',
+        'Allowing app to run with necessary permissions',
+        'Running tests...',
+        '> ',
+        '> simulated',
+        `    ${chalk.grey('2 \\+ 2 === 4')}`,
+        `  ${chalk.green('√')} should add (\\d+ ms)`,
+        `  ${chalk.red('X')} should fail: expected 1 to equal 4 (\\d+ ms)`,
+        '> state',
+        `(BLE capture file saved in ${capturePath}: 1 records)`,
+        `  ${chalk.green('√')} should record command with request and response (\\d+ ms)`,
+        '  (undefined ms)', // TODO: undefined??
+        '  (undefined ms)',
+        '  (undefined ms)',
+        'Done!',
+        '1 test failed!',
+      ];
+      expectOutputMatch(output, expectedOutputRegExp);
+      const captureFile = JSON.parse(fs.readFileSync(capturePath));
+      expect(captureFile).to.deep.equal([
+        {
+          'type': 'command',
+          'command': 'state',
+          'request': {},
+          'response': 'some-state',
+        },
+      ]);
+    });
   });
 });

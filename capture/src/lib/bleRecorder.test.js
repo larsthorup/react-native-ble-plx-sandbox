@@ -1,5 +1,3 @@
-// import { expect } from 'chai';
-
 import { expect } from 'chai';
 import * as td from 'testdouble';
 import { parseBleCaptureEvent, parseBleRecord } from './bleCaptureJsonProtocol.js';

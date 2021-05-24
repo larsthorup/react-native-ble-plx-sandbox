@@ -1,5 +1,15 @@
-export function MochaEventReporter(runner, { reporterOptions }) {
-  this.log = reporterOptions.logger || console.log;
+const testRunnerPrefix = 'TestRunner: ';
+
+// TODO: share
+const stringifyTestRunnerEvent = (runnerEvent) => {
+  const line = `${testRunnerPrefix}${JSON.stringify(runnerEvent)}`;
+  return line;
+};
+
+const defaultLogger = (mochaEvent) => console.log(`${stringifyTestRunnerEvent(mochaEvent)}`);
+
+function MochaEventReporter(runner, { reporterOptions }) {
+  this.log = (reporterOptions || {}).logger || defaultLogger;
   const {
     EVENT_RUN_BEGIN,
     EVENT_RUN_END,
@@ -23,7 +33,7 @@ export function MochaEventReporter(runner, { reporterOptions }) {
       this.log({ event: 'suite:start', name });
     })
     .on(EVENT_SUITE_END, (suite) => {
-      const { name } = suite;
+      const { title: name } = suite;
       this.log({ event: 'suite:complete', name });
     })
     .on(EVENT_TEST_BEGIN, (test) => {
@@ -46,3 +56,5 @@ export function MochaEventReporter(runner, { reporterOptions }) {
     })
     ;
 }
+
+module.exports = MochaEventReporter;
