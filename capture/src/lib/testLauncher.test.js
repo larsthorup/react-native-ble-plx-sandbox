@@ -3,17 +3,9 @@ import { expect } from 'chai';
 import { launch } from './testLauncher.js';
 import { Readable } from 'stream';
 import chalk from 'chalk';
-
-// inject child_process mock
-// verify logcat clean
-// mock logcat stream with generated file
-// verify adb clear
-// verify adb launch
-// verify adb uiautomator
-// verify adb pull, return recorded screenshot
-// verify adb tap
-// compare actual console output with expected output
-// compare actual exit code with expected exit code
+import Mocha from 'mocha';
+import { MochaEventReporter } from './MochaEventReporter.js';
+import { stringifyTestRunnerEvent } from './testRunnerJsonProtocol.js';
 
 const appName = 'SomeAppName';
 const env = {
@@ -34,7 +26,7 @@ const execMock = (expected) => {
 };
 
 describe('testLauncher', () => {
-  describe('successful', () => {
+  describe('passing with expected number of failures', () => {
     it('exits with 0 and produces correct output and capture file', async () => {
       const exec = execMock([
         { cmd: 'adb logcat -c' },
@@ -52,16 +44,22 @@ describe('testLauncher', () => {
       const expectedFailCount = 1;
       const output = [];
       const log = (line) => output.push(line);
+
+      const mocha = new Mocha();
+      mocha.addFile('./src/lib/testLauncher.test.simulated.cjs');
+      const mochaOutput = [];
+      const mochaLogger = (runnerEvent) => mochaOutput.push(stringifyTestRunnerEvent(runnerEvent));
+      mocha.reporter(MochaEventReporter, { logger: mochaLogger });
+      const mochaFailureCount = await new Promise((resolve) => {
+        mocha.run(resolve);
+      });
+      expect(mochaFailureCount).to.equal(expectedFailCount);
+      const testRunnerOutput = mochaOutput.join('\n');
+
       const spawn = (cmd, args) => {
         expect(cmd).to.equal('adb');
         expect(args).to.deep.equal(['logcat', '-v', 'raw', '-s', 'ReactNativeJS:V']);
-        // TODO: produce this with mocha :)
-        const testRunnerOutput = [
-          'TestRunner: {"event": "start"}',
-          'TestRunner: {"event": "fail", "name": "some test", "message": "some error message", "duration": 42}',
-          'some output',
-          'TestRunner: {"event": "complete"}',
-        ].join('\n');
+
         const stdout = Readable.from([testRunnerOutput]);
         return {
           stdout,
@@ -70,15 +68,27 @@ describe('testLauncher', () => {
       };
       const { exitCode } = await launch({ appName, env, exec, expectedFailCount, log, spawn });
       expect(exitCode).to.equal(0);
-      expect(output).to.deep.equal([
+      const expectedOutput = [
         'Launching test runner on device...',
         'Allowing app to run with necessary permissions',
         'Running tests...',
-        `  ${chalk.red('X')} some test: some error message (42 ms)`,
-        `    ${chalk.grey('some output')}`,
+        '> ',
+        '> simulated',
+        `  ${chalk.green('√')} should add (\\d+ ms)`,
+        `  ${chalk.red('X')} should fail: expected 1 to equal 4 (\\d+ ms)`,
+        '  (undefined ms)',
+        '  (undefined ms)',
         'Done!',
         'Success (1 test failed as expected)!',
-      ]);
+      ];
+      for (let i = 0; i < output.length; ++i) {
+        const regex = new RegExp(expectedOutput[i]
+          .replaceAll('\u001b[', '\u001b\\[')
+          .replaceAll('(', '\\(')
+          .replaceAll(')', '\\)'),
+        );
+        expect(output[i]).to.match(regex);
+      }
       // TODO: capture file
     });
   });
