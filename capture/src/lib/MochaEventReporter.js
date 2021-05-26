@@ -23,7 +23,7 @@ export function MochaEventReporter(runner, { reporterOptions }) {
       this.log({ event: 'suite:start', name });
     })
     .on(EVENT_SUITE_END, (suite) => {
-      const { name } = suite;
+      const { title: name } = suite;
       this.log({ event: 'suite:complete', name });
     })
     .on(EVENT_TEST_BEGIN, (test) => {

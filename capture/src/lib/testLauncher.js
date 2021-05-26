@@ -84,7 +84,11 @@ export const launch = async ({ appName, env, exec, expectedFailCount, log, spawn
             log('Running tests...');
             break;
           case 'suite:complete':
-            log(`  (${duration} ms)`);
+            if (name) {
+              log(`> ${name} - complete`);
+            } else {
+              log('> complete');
+            }
             break;
           case 'suite:start':
             log(`> ${name}`);

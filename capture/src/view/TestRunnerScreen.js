@@ -34,7 +34,11 @@ const TestRunnerScreen = () => {
               case 'start':
                 return 'Running tests...';
               case 'suite:complete':
-                return duration !== undefined ? `  (${duration} ms)` : '  complete';
+                if (name) {
+                  return `> ${name} - complete`;
+                } else {
+                  return '> complete';
+                }
               case 'suite:start':
                 return `> ${name}`;
             }

@@ -88,6 +88,35 @@ const expectOutputMatch = (output, expectedOutputRegExp) => {
   }
 };
 
+const expectedCapturePath = 'artifact/testLauncher.test.simulated.capture.json';
+
+const expectedOutputRegExp = [
+  'Launching test runner on device...',
+  'Allowing app to run with necessary permissions',
+  'Running tests...',
+  '>',
+  '> calc',
+  `    ${chalk.grey('2 \\+ 2 === 4')}`,
+  `  ${chalk.green('√')} should add (\\d+ ms)`,
+  `  ${chalk.red('X')} should fail: expected 1 to equal 4 (\\d+ ms)`,
+  '> calc - complete',
+  '> state',
+  `(BLE capture file saved in ${expectedCapturePath}: 1 records)`,
+  `  ${chalk.green('√')} should record command with request and response (\\d+ ms)`,
+  '> state - complete',
+  '> complete',
+  'Done!',
+];
+
+const expectedCaptureFile = [
+  {
+    'type': 'command',
+    'command': 'state',
+    'request': {},
+    'response': 'some-state',
+  },
+];
+
 describe('testLauncher', () => {
   describe('passing with expected number of failures', () => {
     it('exits with 0 and produces correct output and capture file', async () => {
@@ -98,35 +127,11 @@ describe('testLauncher', () => {
       const spawn = await mockSpawn();
       const { exitCode } = await launch({ appName, env, exec, expectedFailCount, log, spawn });
       expect(exitCode).to.equal(0);
-      const capturePath = 'artifact/testLauncher.test.simulated.capture.json';
-      const expectedOutputRegExp = [
-        'Launching test runner on device...',
-        'Allowing app to run with necessary permissions',
-        'Running tests...',
-        '> ',
-        '> simulated',
-        `    ${chalk.grey('2 \\+ 2 === 4')}`,
-        `  ${chalk.green('√')} should add (\\d+ ms)`,
-        `  ${chalk.red('X')} should fail: expected 1 to equal 4 (\\d+ ms)`,
-        '> state',
-        `(BLE capture file saved in ${capturePath}: 1 records)`,
-        `  ${chalk.green('√')} should record command with request and response (\\d+ ms)`,
-        '  (undefined ms)', // TODO: undefined??
-        '  (undefined ms)',
-        '  (undefined ms)',
-        'Done!',
+      expectOutputMatch(output, expectedOutputRegExp.concat([
         'Success (1 test failed as expected)!',
-      ];
-      expectOutputMatch(output, expectedOutputRegExp);
-      const captureFile = JSON.parse(fs.readFileSync(capturePath));
-      expect(captureFile).to.deep.equal([
-        {
-          'type': 'command',
-          'command': 'state',
-          'request': {},
-          'response': 'some-state',
-        },
-      ]);
+      ]));
+      const captureFile = JSON.parse(fs.readFileSync(expectedCapturePath));
+      expect(captureFile).to.deep.equal(expectedCaptureFile);
     });
   });
 
@@ -140,35 +145,11 @@ describe('testLauncher', () => {
       const spawn = await mockSpawn();
       const { exitCode } = await launch({ appName, env, exec, expectedFailCount, log, spawn });
       expect(exitCode).to.equal(1);
-      const capturePath = 'artifact/testLauncher.test.simulated.capture.json';
-      const expectedOutputRegExp = [
-        'Launching test runner on device...',
-        'Allowing app to run with necessary permissions',
-        'Running tests...',
-        '> ',
-        '> simulated',
-        `    ${chalk.grey('2 \\+ 2 === 4')}`,
-        `  ${chalk.green('√')} should add (\\d+ ms)`,
-        `  ${chalk.red('X')} should fail: expected 1 to equal 4 (\\d+ ms)`,
-        '> state',
-        `(BLE capture file saved in ${capturePath}: 1 records)`,
-        `  ${chalk.green('√')} should record command with request and response (\\d+ ms)`,
-        '  (undefined ms)', // TODO: undefined??
-        '  (undefined ms)',
-        '  (undefined ms)',
-        'Done!',
+      expectOutputMatch(output, expectedOutputRegExp.concat([
         '1 test failed!',
-      ];
-      expectOutputMatch(output, expectedOutputRegExp);
-      const captureFile = JSON.parse(fs.readFileSync(capturePath));
-      expect(captureFile).to.deep.equal([
-        {
-          'type': 'command',
-          'command': 'state',
-          'request': {},
-          'response': 'some-state',
-        },
-      ]);
+      ]));
+      const captureFile = JSON.parse(fs.readFileSync(expectedCapturePath));
+      expect(captureFile).to.deep.equal(expectedCaptureFile);
     });
   });
 });
