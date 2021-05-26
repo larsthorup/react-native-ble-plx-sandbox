@@ -3,8 +3,8 @@ import { BleManagerMock } from './BleManagerMock';
 describe('BleManagerMock', () => {
   it('monitorCharacteristicForDevice', async () => {
     const bleManager = new BleManagerMock();
-    const bleManagerPlayer = bleManager; // TODO: bleManager.player
-    bleManagerPlayer.mockWith([
+    const { blePlayer } = bleManager;
+    blePlayer.mockWith([
       {
         type: 'command',
         command: 'monitorCharacteristicForDevice',
@@ -38,7 +38,7 @@ describe('BleManagerMock', () => {
           resolve(c);
         }
       });
-      bleManagerPlayer.playUntil('characteristic-received');
+      blePlayer.playUntil('characteristic-received');
       subscription.remove();
     });
     expect(characteristic).toEqual({

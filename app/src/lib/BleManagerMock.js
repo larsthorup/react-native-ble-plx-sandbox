@@ -3,8 +3,10 @@ import deepEqual from 'deep-equal';
 
 export const BleState = State;
 
-export class BleManagerMock {
-  constructor() {
+
+export class BlePlayer {
+  constructor(bleManagerMock) {
+    this.bleManagerMock = bleManagerMock;
     this._reset();
   }
 
@@ -197,58 +199,63 @@ export class BleManagerMock {
       throw new Error(`Expected recording to be fully covered but last ${remainingRecordCount} records were not played`);
     }
   }
+}
+export class BleManagerMock {
+  constructor() {
+    this.blePlayer = new BlePlayer(this);
+  }
 
   onStateChange(listener, emitCurrentState = false) {
-    if (this._stateChangeListener) {
-      this._error('Cannot call "onStateChange()" until calling "remove()" on previous subscription');
+    if (this.blePlayer._stateChangeListener) {
+      this.blePlayer._error('Cannot call "onStateChange()" until calling "remove()" on previous subscription');
     }
-    this._expectCommand({ command: 'onStateChange', request: { emitCurrentState } });
-    this._stateChangeListener = listener;
+    this.blePlayer._expectCommand({ command: 'onStateChange', request: { emitCurrentState } });
+    this.blePlayer._stateChangeListener = listener;
     const subscription = {
-      remove: () => { delete this._stateChangeListener; },
+      remove: () => { delete this.blePlayer._stateChangeListener; },
     };
     return subscription;
   }
 
   startDeviceScan(uuidList, scanOptions, listener) {
-    if (this._deviceScanListener) {
-      this._error('Cannot call "startDeviceScan()" until calling "remove()" on previous subscription');
+    if (this.blePlayer._deviceScanListener) {
+      this.blePlayer._error('Cannot call "startDeviceScan()" until calling "remove()" on previous subscription');
     }
-    this._expectCommand({ command: 'startDeviceScan', request: { uuidList, scanOptions } });
-    this._deviceScanListener = listener;
+    this.blePlayer._expectCommand({ command: 'startDeviceScan', request: { uuidList, scanOptions } });
+    this.blePlayer._deviceScanListener = listener;
     const subscription = {
-      remove: () => { delete this._deviceScanListener; },
+      remove: () => { delete this.blePlayer._deviceScanListener; },
     };
     return subscription;
   }
 
   onDeviceDisconnected(id, listener) {
-    if (this._deviceDisconnectedListener) {
-      this._error('Cannot call "onDeviceDisconnected()" until calling "remove()" on previous subscription');
+    if (this.blePlayer._deviceDisconnectedListener) {
+      this.blePlayer._error('Cannot call "onDeviceDisconnected()" until calling "remove()" on previous subscription');
     }
-    this._expectCommand({ command: 'onDeviceDisconnected', request: { id } });
-    this._deviceDisconnectedListener = listener;
+    this.blePlayer._expectCommand({ command: 'onDeviceDisconnected', request: { id } });
+    this.blePlayer._deviceDisconnectedListener = listener;
     const subscription = {
-      remove: () => { delete this._deviceDisconnectedListener; },
+      remove: () => { delete this.blePlayer._deviceDisconnectedListener; },
     };
     return subscription;
   }
 
   async state() {
-    return this._expectCommand({ command: 'state', request: {} });
+    return this.blePlayer._expectCommand({ command: 'state', request: {} });
   }
 
   async isDeviceConnected(id) {
-    return this._expectCommand({ command: 'isDeviceConnected', request: { id } });
+    return this.blePlayer._expectCommand({ command: 'isDeviceConnected', request: { id } });
   }
 
   async devices(deviceIdentifiers) {
-    const deviceList = this._expectCommand({ command: 'devices', request: { deviceIdentifiers } });
+    const deviceList = this.blePlayer._expectCommand({ command: 'devices', request: { deviceIdentifiers } });
     return deviceList.map(({ id }) => ({
       id,
       // Note: convenience wrappers can safely be implemented here and not mocked
-      services: async () => this.servicesForDevice(id),
-      characteristicsForService: async (serviceUUID) => this.characteristicsForDevice(id, serviceUUID),
+      services: async () => this.blePlayer.servicesForDevice(id),
+      characteristicsForService: async (serviceUUID) => this.blePlayer.characteristicsForDevice(id, serviceUUID),
     }));
   }
 
@@ -257,7 +264,7 @@ export class BleManagerMock {
     // it can mess up that error reporting, so we will skip throwing in this case.
     // Note: eventually consider if this approach needs to be generalized
     const skipThrow = true;
-    this._expectCommand({ command: 'stopDeviceScan', request: {} }, skipThrow);
+    this.blePlayer._expectCommand({ command: 'stopDeviceScan', request: {} }, skipThrow);
   }
 
   async connectToDevice(id, options) {
@@ -265,69 +272,69 @@ export class BleManagerMock {
       id,
       ...(options !== undefined && { options }),
     };
-    const response = this._expectCommand({ command: 'connectToDevice', request });
+    const response = this.blePlayer._expectCommand({ command: 'connectToDevice', request });
     return response;
   }
 
   async connectedDevices(serviceUUIDs) {
-    const response = this._expectCommand({ command: 'connectedDevices', request: { serviceUUIDs } });
+    const response = this.blePlayer._expectCommand({ command: 'connectedDevices', request: { serviceUUIDs } });
     return response;
   }
 
   async cancelDeviceConnection(id) {
-    const device = this._expectCommand({ command: 'cancelDeviceConnection', request: { id } });
+    const device = this.blePlayer._expectCommand({ command: 'cancelDeviceConnection', request: { id } });
     return { id: device.id };
   }
 
   async discoverAllServicesAndCharacteristicsForDevice(id) {
-    this._expectCommand({ command: 'discoverAllServicesAndCharacteristicsForDevice', request: { id } });
+    this.blePlayer._expectCommand({ command: 'discoverAllServicesAndCharacteristicsForDevice', request: { id } });
   }
 
   async requestMTUForDevice(id, mtu) {
-    const response = this._expectCommand({ command: 'requestMTUForDevice', request: { id, mtu } });
+    const response = this.blePlayer._expectCommand({ command: 'requestMTUForDevice', request: { id, mtu } });
     return response;
   }
 
   async servicesForDevice(id) {
-    const response = this._expectCommand({ command: 'servicesForDevice', request: { id } });
+    const response = this.blePlayer._expectCommand({ command: 'servicesForDevice', request: { id } });
     return response;
   }
 
   async characteristicsForDevice(id, serviceUUID) {
-    const response = this._expectCommand({ command: 'characteristicsForDevice', request: { id, serviceUUID } });
+    const response = this.blePlayer._expectCommand({ command: 'characteristicsForDevice', request: { id, serviceUUID } });
     return response;
   }
 
   async readCharacteristicForDevice(id, serviceUUID, characteristicUUID) {
-    const response = this._expectCommand({ command: 'readCharacteristicForDevice', request: { id, serviceUUID, characteristicUUID } });
+    const response = this.blePlayer._expectCommand({ command: 'readCharacteristicForDevice', request: { id, serviceUUID, characteristicUUID } });
     return response;
   }
 
   monitorCharacteristicForDevice(id, serviceUUID, characteristicUUID, listener) {
-    this._expectCommand({ command: 'monitorCharacteristicForDevice', request: { id, serviceUUID, characteristicUUID } });
-    this._characteristicListener[serviceUUID] = this._characteristicListener[serviceUUID] || {};
-    if (this._characteristicListener[serviceUUID][characteristicUUID]) {
+    this.blePlayer._expectCommand({ command: 'monitorCharacteristicForDevice', request: { id, serviceUUID, characteristicUUID } });
+    this.blePlayer._characteristicListener[serviceUUID] = this.blePlayer._characteristicListener[serviceUUID] || {};
+    if (this.blePlayer._characteristicListener[serviceUUID][characteristicUUID]) {
       console.error(`Warning: missing call to monitorCharacteristicForDevice('${id}', '${serviceUUID}', '${characteristicUUID}).remove()`);
     }
-    this._characteristicListener[serviceUUID][characteristicUUID] = listener;
-    this._autoPlayEvents(); // Note: eventually consider if we should do this on all commands
+    this.blePlayer._characteristicListener[serviceUUID][characteristicUUID] = listener;
+    this.blePlayer._autoPlayEvents(); // Note: eventually consider if we should do this on all commands
     return {
       remove: () => {
-        if (this._characteristicListener[serviceUUID]) {
-          delete this._characteristicListener[serviceUUID][characteristicUUID];
+        if (this.blePlayer._characteristicListener[serviceUUID]) {
+          delete this.blePlayer._characteristicListener[serviceUUID][characteristicUUID];
         }
       },
     };
   }
 
   async writeCharacteristicWithResponseForDevice(id, serviceUUID, characteristicUUID, value) {
-    const characteristic = this._expectCommand({ command: 'writeCharacteristicWithResponseForDevice', request: { id, serviceUUID, characteristicUUID, value } });
-    this._autoPlayEvents(); // Note: eventually consider if we should do this on all commands
+    const characteristic = this.blePlayer._expectCommand({ command: 'writeCharacteristicWithResponseForDevice', request: { id, serviceUUID, characteristicUUID, value } });
+    this.blePlayer._autoPlayEvents(); // Note: eventually consider if we should do this on all commands
     return characteristic;
   }
 
   async readRSSIForDevice(id) {
-    const response = this._expectCommand({ command: 'readRSSIForDevice', request: { id } });
+    const response = this.blePlayer._expectCommand({ command: 'readRSSIForDevice', request: { id } });
     return response;
   }
 }

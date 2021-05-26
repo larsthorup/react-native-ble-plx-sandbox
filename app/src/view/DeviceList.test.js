@@ -14,8 +14,8 @@ describe('DeviceList', () => {
     // for (const _ of '*'.repeat(1000))
     it('should load and show device info', async () => {
       const spec = JSON.parse(fs.readFileSync('../capture/artifact/deviceList.capture.json'));
-      const bleManagerMock = getBleManager();
-      bleManagerMock.mockWith(spec);
+      const { blePlayer } = getBleManager();
+      blePlayer.mockWith(spec);
 
       // when: render the app
       const { getByA11yLabel, queryByA11yLabel } = render(withStore(<DeviceListScreen />, configureStore()));
@@ -25,7 +25,7 @@ describe('DeviceList', () => {
 
       // when: simulating BLE scan response
       act(() => {
-        bleManagerMock.playUntil('scanned'); // Note: causes re-render, so act() is needed
+        blePlayer.playUntil('scanned'); // Note: causes re-render, so act() is needed
       });
 
       // when: clicking a device
@@ -51,14 +51,14 @@ describe('DeviceList', () => {
       expect(queryByA11yLabel('"The Speaker" battery level')).toBeFalsy();
 
       // finally
-      bleManagerMock.expectFullCaptureCoverage();
+      blePlayer.expectFullCaptureCoverage();
     });
   });
 
   describe('manual mocking', () => {
     it('should display empty list of BLE devices', async () => {
-      const bleManagerMock = getBleManager();
-      bleManagerMock.mockWith([
+      const { blePlayer } = getBleManager();
+      blePlayer.mockWith([
         {
           'type': 'command',
           'command': 'onStateChange',
@@ -92,7 +92,7 @@ describe('DeviceList', () => {
 
       // when: simulating some BLE traffic
       act(() => {
-        bleManagerMock.playUntil('powered'); // Note: causes re-render, so act() is needed
+        blePlayer.playUntil('powered'); // Note: causes re-render, so act() is needed
       });
 
       // then: initially no devices are displayed
@@ -100,12 +100,12 @@ describe('DeviceList', () => {
       expect(queryAllByA11yLabel('BLE device')).toEqual([]);
 
       // finally
-      bleManagerMock.expectFullCaptureCoverage();
+      blePlayer.expectFullCaptureCoverage();
     });
 
     it('should display list of BLE devices', async () => {
-      const bleManagerMock = getBleManager();
-      bleManagerMock.mockWith([
+      const { blePlayer } = getBleManager();
+      blePlayer.mockWith([
         {
           'type': 'command',
           'command': 'onStateChange',
@@ -138,7 +138,7 @@ describe('DeviceList', () => {
 
       // when: simulating some BLE traffic
       act(() => {
-        bleManagerMock.playUntil('scanned'); // Note: causes re-render, so act() is needed
+        blePlayer.playUntil('scanned'); // Note: causes re-render, so act() is needed
       });
 
       // then: eventually the scanned devices are displayed
@@ -148,12 +148,12 @@ describe('DeviceList', () => {
       ]);
 
       // finally
-      bleManagerMock.expectFullCaptureCoverage();
+      blePlayer.expectFullCaptureCoverage();
     });
 
     it('should display list of BLE devices as they appear', async () => {
-      const bleManagerMock = getBleManager();
-      bleManagerMock.mockWith([
+      const { blePlayer } = getBleManager();
+      blePlayer.mockWith([
         {
           'type': 'command',
           'command': 'onStateChange',
@@ -187,7 +187,7 @@ describe('DeviceList', () => {
 
       // when: simulating some BLE traffic
       act(() => {
-        bleManagerMock.playUntil('some-scanned'); // Note: causes re-render, so act() is needed
+        blePlayer.playUntil('some-scanned'); // Note: causes re-render, so act() is needed
       });
 
       // then: eventually the scanned devices are displayed
@@ -197,7 +197,7 @@ describe('DeviceList', () => {
 
       // when: simulating remaining BLE traffic
       act(() => {
-        bleManagerMock.playUntil('all-scanned'); // Note: causes re-render, so act() is needed
+        blePlayer.playUntil('all-scanned'); // Note: causes re-render, so act() is needed
       });
 
       // then: eventually the scanned devices are displayed
@@ -207,7 +207,7 @@ describe('DeviceList', () => {
       ]);
 
       // finally
-      bleManagerMock.expectFullCaptureCoverage();
+      blePlayer.expectFullCaptureCoverage();
     });
   });
 });
