@@ -1,7 +1,6 @@
 import * as fs from 'fs';
 import { expect } from 'chai';
 import * as cp from 'child_process';
-import * as path from 'path';
 import { Readable } from 'stream';
 
 import chalk from 'chalk';
@@ -45,9 +44,8 @@ const createExecMock = () => {
 const mockSpawn = async () => {
   // Note: run mocha out of process to allow the test and the imported files to use ES6 modules,
   // which wouldn't work with mocha.addFile()
-  const mochaConfigPath = path.resolve('./src/lib/test/.mocharc.cjs');
   const { stdout: testRunnerOutput } = await new Promise((resolve, reject) => {
-    cp.exec(`mocha --config ${mochaConfigPath}`, (error, stdout, stderr) => {
+    cp.exec('node src/lib/test/testLauncher.test.runner.js', (error, stdout, stderr) => {
       if (error && stderr) {
         reject(error);
       } else {

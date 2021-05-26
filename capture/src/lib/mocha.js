@@ -14,3 +14,4 @@ export const run = async (logger) => {
   });
 };
 
+export default mocha;
