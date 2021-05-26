@@ -27,22 +27,22 @@ export function MochaEventReporter(runner, { reporterOptions }) {
       this.log({ event: 'suite:complete', name });
     })
     .on(EVENT_TEST_BEGIN, (test) => {
-      // TODO: this.send(EVENT_TEST_BEGIN, [test]);
+      // Note: not currently used
     })
     .on(EVENT_TEST_END, (test) => {
-      // TODO: this.send(EVENT_TEST_END, [test]);
+      // Note: not currently used
     })
     .on(EVENT_TEST_FAIL, (test, error) => {
       const { duration, title: name } = test;
-      const suites = []; // TODO
-      this.log({ duration, event: 'fail', name, message: error.message, suites });
+      this.log({ duration, event: 'fail', name, message: error.message });
     })
     .on(EVENT_TEST_PASS, (test) => {
       const { duration, title: name } = test;
       this.log({ duration, event: 'pass', name });
     })
     .on(EVENT_TEST_PENDING, (test) => {
-      // TODO: this.send(EVENT_TEST_PENDING, [test]);
+      const { title: name } = test;
+      this.log({ event: 'pending', name });
     })
     ;
 }

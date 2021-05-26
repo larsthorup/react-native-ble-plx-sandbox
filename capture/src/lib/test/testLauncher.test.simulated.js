@@ -16,6 +16,10 @@ describe('calc', () => {
   it('should fail', () => {
     expect(2 / 2).to.equal(4);
   });
+
+  it.skip('should report pending', () => { // eslint-disable-line jest/no-disabled-tests
+    expect(0 / 0).to.equal(5);
+  });
 });
 
 describe('state', () => {

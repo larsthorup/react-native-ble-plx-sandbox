@@ -97,6 +97,7 @@ const expectedOutputRegExp = [
   `    ${chalk.grey('2 \\+ 2 === 4')}`,
   `  ${chalk.green('√')} should add (\\d+ ms)`,
   `  ${chalk.red('X')} should fail: expected 1 to equal 4 (\\d+ ms)`,
+  `  ${chalk.yellow('-')} should report pending`,
   '> calc - complete',
   '> state',
   `(BLE capture file saved in ${expectedCapturePath}: 1 records)`,

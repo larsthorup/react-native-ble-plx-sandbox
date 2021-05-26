@@ -31,6 +31,8 @@ const TestRunnerScreen = () => {
                 return `  X ${name}: ${message} (${duration} ms)`;
               case 'pass':
                 return `  √ ${name} (${duration} ms)`;
+              case 'pending':
+                return `  - ${name}`;
               case 'start':
                 return 'Running tests...';
               case 'suite:complete':
@@ -74,6 +76,9 @@ const styles = StyleSheet.create({
   },
   'progress.pass': {
     color: 'green',
+  },
+  'progress.pending': {
+    color: 'yellow',
   },
   'progress.start': {
     color: 'grey',

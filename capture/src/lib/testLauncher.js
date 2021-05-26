@@ -80,6 +80,9 @@ export const launch = async ({ appName, env, exec, expectedFailCount, log, spawn
           case 'pass':
             log(`  ${chalk.green('√')} ${name} (${duration} ms)`);
             break;
+          case 'pending':
+            log(`  ${chalk.yellow('-')} ${name}`);
+            break;
           case 'start':
             log('Running tests...');
             break;
