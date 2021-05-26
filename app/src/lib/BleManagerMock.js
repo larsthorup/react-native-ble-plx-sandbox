@@ -91,11 +91,11 @@ export class BleManagerMock {
       switch (event) {
         case 'characteristic': {
           const { characteristic, error } = args;
-          const { serviceUUID, characteristicUUID, value } = characteristic;
-          const listener = (this._characteristicListener[serviceUUID] || {})[characteristicUUID];
+          const { serviceUUID, uuid, value } = characteristic;
+          const listener = (this._characteristicListener[serviceUUID] || {})[uuid];
           if (listener) {
             try {
-              const characteristicMock = { serviceUUID, uuid: characteristicUUID, value };
+              const characteristicMock = { serviceUUID, uuid, value };
               // Note: handle async exception
               Promise.resolve(listener(error, characteristicMock)).catch(console.error);
             } catch (err) {
@@ -103,7 +103,7 @@ export class BleManagerMock {
               console.error(err);
             }
           } else {
-            console.log(this._characteristicListener, { serviceUUID, characteristicUUID });
+            console.log(this._characteristicListener, { serviceUUID, uuid });
             console.warn(`BleManagerMock: event cannot be delivered, as bleManager.monitorCharacteristicForDevice has not yet been called: ${JSON.stringify(record)} or subscription was removed`);
           }
           break;

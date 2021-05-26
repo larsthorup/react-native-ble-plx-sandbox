@@ -20,7 +20,7 @@ describe('BleManagerMock', () => {
         args: {
           characteristic: {
             serviceUUID: 'some-service-uuid',
-            characteristicUUID: 'some-characteristic-uuid', // TODO: uuid??
+            uuid: 'some-characteristic-uuid',
             value: 'some-value',
           },
         },
