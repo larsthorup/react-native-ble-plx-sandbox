@@ -1,4 +1,4 @@
-import { assert } from 'chai';
+import { expect } from 'chai';
 import '../lib/mocha';
 
 describe('calc', () => {
@@ -10,31 +10,31 @@ describe('calc', () => {
 
   it('should add positive numbers', () => {
     ++count;
-    assert.strictEqual(2 + 2, 4);
+    expect(2 + 2).to.equal(4);
   });
 
   it('should add negative numbers', () => {
     ++count;
-    assert.strictEqual(-2 + -2, -4);
+    expect(-2 + -2).to.equal(-4);
   });
 
   it('should report failure', () => {
     ++count;
-    assert.strictEqual(2 + 2, 5);
+    expect(2 + 2).to.equal(5);
   });
 
   it.skip('should report pending', () => { // eslint-disable-line jest/no-disabled-tests
     ++count;
-    assert.strictEqual(0 / 0, 5);
+    expect(0 / 0).to.equal(5);
   });
 
   it('should await async result', async () => {
     ++count;
     const result = await new Promise(resolve => resolve(2 + 2));
-    assert.strictEqual(result, 4);
+    expect(result).to.equal(4);
   });
 
   after(() => {
-    assert.strictEqual(count, 4);
+    expect(count).to.equal(4);
   });
 });

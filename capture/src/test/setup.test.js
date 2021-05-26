@@ -1,5 +1,5 @@
 import { PermissionsAndroid } from 'react-native';
-import { assert } from 'chai';
+import { expect } from 'chai';
 
 import '../lib/mocha';
 
@@ -8,5 +8,5 @@ before(async () => {
   const permissionResult = await PermissionsAndroid.request(
     PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
   );
-  assert.strictEqual(permissionResult, PermissionsAndroid.RESULTS.GRANTED);
+  expect(permissionResult).to.equal(PermissionsAndroid.RESULTS.GRANTED);
 });

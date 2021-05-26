@@ -1,4 +1,4 @@
-import { assert } from 'chai';
+import { expect } from 'chai';
 import '../lib/mocha';
 
 import { BleManager } from 'react-native-ble-plx';
@@ -64,7 +64,7 @@ describe(captureName, () => {
   it('should connect to device', async () => {
     const { id, name } = device;
     console.log(`(actual device: {id: '${id}', name: '${name}'})`);
-    assert.strictEqual(name, deviceMap.expected[id].name);
+    expect(name).to.equal(deviceMap.expected[id].name);
     await bleManager.connectToDevice(id);
     await bleManager.discoverAllServicesAndCharacteristicsForDevice(id);
   });
@@ -72,13 +72,13 @@ describe(captureName, () => {
   it('should read battery level', async () => {
     const { id } = device;
     const services = await bleManager.servicesForDevice(id);
-    assert.ok(services.find((s) => s.uuid.toLowerCase() === service.battery.uuid.toLowerCase()));
+    expect(services.find((s) => s.uuid.toLowerCase() === service.battery.uuid.toLowerCase())).to.exist;
     bleRecorder.queueRecordValue(base64FromUint8(42));
     const { value } = await bleManager.readCharacteristicForDevice(id, service.battery.uuid, characteristic.batteryLevel.uuid);
     const batteryLevel = uint8FromBase64(value);
     console.log(`(actual batteryLevel = ${batteryLevel})`);
-    assert.ok(batteryLevel >= 0, `Expected ${batteryLevel} >= 0`);
-    assert.ok(batteryLevel <= 100, `Expected ${batteryLevel} <= 100`);
+    expect(batteryLevel).to.be.at.least(0);
+    expect(batteryLevel).to.be.at.most(100);
   });
 
   it('should read signal strength', async () => {
@@ -86,7 +86,7 @@ describe(captureName, () => {
     bleRecorder.recordRssi = -42;
     const { rssi } = await bleManager.readRSSIForDevice(id);
     console.log(`(actual rssi = ${rssi})`);
-    assert.ok(rssi < 0, `Expected ${rssi} < 0`);
-    assert.ok(rssi >= -127, `Expected ${rssi} >= -127`);
+    expect(rssi).to.be.below(0);
+    expect(rssi).to.be.above(-127);
   });
 });
