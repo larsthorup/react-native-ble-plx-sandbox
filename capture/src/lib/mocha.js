@@ -1,10 +1,11 @@
 /* global mocha */
 import '../../node_modules/mocha/mocha.js';
 import { MochaEventReporter } from './MochaEventReporter.js';
+import mochaConfig from '../../.mocharc.js';
 
 global.location = {};
 mocha.setup('bdd');
-mocha.timeout(10000); // TODO: configure
+mocha.timeout(mochaConfig.timeout || 2000);
 
 export const run = async (logger) => {
   mocha.reporter(MochaEventReporter, { logger });
