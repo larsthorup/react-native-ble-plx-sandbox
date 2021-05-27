@@ -3,7 +3,7 @@ import readline from 'readline';
 
 import chalk from 'chalk';
 import { parseTestRunnerEvent } from '../lib/testRunnerJsonProtocol.js';
-import { parseBleCaptureEvent, parseBleRecord } from '../lib/bleCaptureJsonProtocol.js';
+import { parseBleCaptureEvent, parseBleRecord } from '@larsthorup/ble-mock-recorder';
 
 const lineTransformer = (input) => readline.createInterface({ input });
 

@@ -3,7 +3,7 @@
 import { expect } from 'chai';
 import * as td from 'testdouble';
 
-import { BleRecorder, BleManagerSpy } from '../bleRecorder.js';
+import { BleRecorder, BleManagerSpy } from '@larsthorup/ble-mock-recorder';
 
 const BleManagerFake = td.constructor(BleManagerSpy);
 

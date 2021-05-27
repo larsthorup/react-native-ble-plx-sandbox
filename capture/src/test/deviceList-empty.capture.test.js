@@ -2,7 +2,7 @@ import '../lib/mocha';
 
 import * as bleService from '../shared/bleService';
 
-import { BleRecorder } from '../lib/bleRecorder';
+import { BleRecorder } from '@larsthorup/ble-mock-recorder';
 import { BleManager } from 'react-native-ble-plx';
 
 const captureName = 'deviceList-empty';
