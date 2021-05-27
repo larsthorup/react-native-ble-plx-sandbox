@@ -1,4 +1,5 @@
 .nyc_output/
+artifact/
 coverage/
 output/
 node_modules/

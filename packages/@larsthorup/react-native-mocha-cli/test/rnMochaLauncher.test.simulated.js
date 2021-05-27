@@ -21,7 +21,7 @@ describe('calc', () => {
     expect(2 / 2).to.equal(4);
   });
 
-  it.skip('should report pending', () => { // eslint-disable-line jest/no-disabled-tests
+  it.skip('should report pending', () => {
     expect(0 / 0).to.equal(5);
   });
 });

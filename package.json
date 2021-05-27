@@ -2,12 +2,14 @@
   "name": "react-native-ble-plx-sandbox",
   "scripts": {
     "android": "cd app && npm run android",
-    "ci": "npm run ci:capture && npm run test:app",
+    "ci": "npm run sync && npm run test:ble-mock-recorder && npm run test:react-native-mocha && npm run test:react-native-mocha-cli && npm run ci:capture && npm run test:app",
     "ci:capture": "cd capture && npm run ci",
     "install:app": "cd app && npm install",
     "install:capture": "cd capture && npm install",
-    "install:packages": "npm run install:packages:ble-mock-recorder",
+    "install:packages": "npm run install:packages:ble-mock-recorder && npm run install:packages:react-native-mocha && npm run install:packages:react-native-mocha-cli",
     "install:packages:ble-mock-recorder": "cd packages/@larsthorup/ble-mock-recorder && npm install",
+    "install:packages:react-native-mocha": "cd packages/@larsthorup/react-native-mocha && npm install",
+    "install:packages:react-native-mocha-cli": "cd packages/@larsthorup/react-native-mocha-cli && npm install",
     "postinstall": "npm run install:packages && npm run install:capture && npm run install:app && npm run sync",
     "start": "cd app && npm start",
     "sync": "npm run sync:shared && npm run sync:packages",
@@ -26,9 +28,12 @@
     "sync:shared:app:clean": "bash -c \"rm -rf app/src/shared\"",
     "sync:shared:capture": "bash -c \"mkdir -p capture/src/shared && cp -ru shared/* capture/src/shared\"",
     "sync:shared:capture:clean": "bash -c \"rm -rf capture/src/shared\"",
-    "test": "npm run sync:clean && npm run sync && npm run test:capture && npm run test:app",
+    "test": "npm run sync && npm run test:ble-mock-recorder && npm run test:react-native-mocha && npm run test:react-native-mocha-cli && npm run test:capture && npm run test:app",
     "test:app": "cd app && npm test",
-    "test:capture": "cd capture && npm test"
+    "test:capture": "cd capture && npm test",
+    "test:ble-mock-recorder": "cd packages/@larsthorup/ble-mock-recorder && npm test",
+    "test:react-native-mocha": "cd packages/@larsthorup/react-native-mocha && npm test",
+    "test:react-native-mocha-cli": "cd packages/@larsthorup/react-native-mocha-cli && npm test"
   },
   "repository": {
     "type": "git",
