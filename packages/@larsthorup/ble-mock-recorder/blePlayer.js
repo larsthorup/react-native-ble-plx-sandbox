@@ -1,8 +1,4 @@
-import { State } from 'react-native-ble-plx';
 import deepEqual from 'deep-equal';
-
-export const BleState = State;
-
 
 export class BlePlayer {
   constructor(bleManagerMock) {

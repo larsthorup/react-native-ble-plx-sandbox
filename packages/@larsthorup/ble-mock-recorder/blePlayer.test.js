@@ -1,7 +1,9 @@
-import { BleManagerMock } from './BleManagerMock';
+import { expect } from 'chai';
 
-describe('BleManagerMock', () => {
-  it('monitorCharacteristicForDevice', async () => {
+import { BleManagerMock } from './blePlayer.js';
+
+describe(BleManagerMock.name, () => {
+  it(BleManagerMock.prototype.monitorCharacteristicForDevice.name, async () => {
     const bleManager = new BleManagerMock();
     const { blePlayer } = bleManager;
     blePlayer.mockWith([
@@ -41,7 +43,7 @@ describe('BleManagerMock', () => {
       blePlayer.playUntil('characteristic-received');
       subscription.remove();
     });
-    expect(characteristic).toEqual({
+    expect(characteristic).to.deep.equal({
       serviceUUID: 'some-service-uuid',
       uuid: 'some-characteristic-uuid',
       value: 'some-value',
