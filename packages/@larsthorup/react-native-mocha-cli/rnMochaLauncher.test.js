@@ -5,7 +5,7 @@ import { Readable } from 'stream';
 
 import chalk from 'chalk';
 
-import { launch } from './testLauncher.js';
+import { launch } from './rnMochaLauncher.js';
 
 const appName = 'SomeAppName';
 const env = {
@@ -45,7 +45,7 @@ const mockSpawn = async () => {
   // Note: run mocha out of process to allow the test and the imported files to use ES6 modules,
   // which wouldn't work with mocha.addFile()
   const { stdout: testRunnerOutput } = await new Promise((resolve, reject) => {
-    cp.exec('node src/lib/test/testLauncher.test.runner.js', (error, stdout, stderr) => {
+    cp.exec('node ./test/rnMochaLauncher.test.runner.js', (error, stdout, stderr) => {
       if (error && stderr) {
         reject(error);
       } else {
@@ -86,7 +86,7 @@ const expectOutputMatch = (output, expectedOutputRegExp) => {
   }
 };
 
-const expectedCapturePath = 'artifact/testLauncher.test.simulated.capture.json';
+const expectedCapturePath = './artifact/rnMochaLauncher.test.simulated.capture.json';
 
 const expectedOutputRegExp = [
   'Launching test runner on device...',
@@ -116,7 +116,7 @@ const expectedCaptureFile = [
   },
 ];
 
-describe('testLauncher', () => {
+describe(launch.name, () => {
   describe('passing with expected number of failures', () => {
     it('exits with 0 and produces correct output and capture file', async () => {
       const exec = createExecMock();

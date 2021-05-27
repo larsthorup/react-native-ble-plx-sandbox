@@ -1,5 +1,9 @@
 /* global describe, it */
 
+// import mocha from '../node_modules/mocha/mocha.js';
+// const { describe, it } = mocha.Mocha;
+// console.log(Object.keys(mocha.Mocha));
+
 import { expect } from 'chai';
 import * as td from 'testdouble';
 
@@ -24,7 +28,7 @@ describe('calc', () => {
 
 describe('state', () => {
   it('should record command with request and response', async () => {
-    const captureName = 'testLauncher.test.simulated';
+    const captureName = 'rnMochaLauncher.test.simulated';
     const bleManagerFake = new BleManagerFake();
     const logger = (line) => console.log(line);
     const bleRecorder = new BleRecorder({ bleManager: bleManagerFake, captureName, logger });

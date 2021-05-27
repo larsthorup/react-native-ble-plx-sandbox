@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { SafeAreaView, ScrollView, StatusBar, StyleSheet, Text } from 'react-native';
-// import { run } from '../lib/testRunner';
 import { run } from '../lib/mocha';
-import { stringifyTestRunnerEvent } from '../lib/testRunnerJsonProtocol';
+import { stringifyTestRunnerEvent } from '@larsthorup/react-native-mocha';
 
 const TestRunnerScreen = () => {
   const [isRunning, setIsRunning] = useState(false);

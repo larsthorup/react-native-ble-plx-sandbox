@@ -1,0 +1,11 @@
+{
+  "name": "@larsthorup/react-native-mocha",
+  "type": "module",
+  "scripts": {
+    "eslint": "eslint . --fix --max-warnings 0 --ignore-path .gitignore",
+    "test": "npm run eslint"
+  },
+  "dependencies": {
+    "eslint": "^7.27.0"
+  }
+}

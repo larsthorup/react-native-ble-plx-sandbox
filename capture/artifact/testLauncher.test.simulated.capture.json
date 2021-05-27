@@ -1,0 +1,8 @@
+[
+  {
+    "type": "command",
+    "command": "state",
+    "request": {},
+    "response": "some-state"
+  }
+]

@@ -2,7 +2,7 @@ import * as fs from 'fs';
 import readline from 'readline';
 
 import chalk from 'chalk';
-import { parseTestRunnerEvent } from '../lib/testRunnerJsonProtocol.js';
+import { parseTestRunnerEvent } from '@larsthorup/react-native-mocha';
 import { parseBleCaptureEvent, parseBleRecord } from '@larsthorup/ble-mock-recorder';
 
 const lineTransformer = (input) => readline.createInterface({ input });
@@ -106,7 +106,8 @@ export const launch = async ({ appName, env, exec, expectedFailCount, log, spawn
             bleRecording = [];
             break;
           case 'save':
-            const capturePath = `artifact/${name}.capture.json`;
+            fs.mkdirSync('./artifact', { recursive: true });
+            const capturePath = `./artifact/${name}.capture.json`;
             fs.writeFileSync(capturePath, JSON.stringify(bleRecording, null, 2));
             log(`(BLE capture file saved in ${capturePath}: ${bleRecording.length} records)`);
             break;
