@@ -1,0 +1,17 @@
+{
+  "name": "@larsthorup/ble-mock-recorder",
+  "type": "module",
+  "scripts": {
+    "c8": "c8 --reporter=lcov --reporter=text-summary mocha",
+    "eslint": "eslint . --fix --max-warnings 0 --ignore-path .gitignore",
+    "mocha": "mocha",
+    "test": "npm run eslint && npm run c8"
+  },
+  "dependencies": {
+    "buffer": "^6.0.3",
+    "c8": "^7.7.2",
+    "chai": "^4.3.4",
+    "eslint": "^7.27.0",
+    "mocha": "^8.4.0"
+  }
+}

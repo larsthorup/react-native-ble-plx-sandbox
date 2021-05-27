@@ -6,7 +6,7 @@ import { BleManager } from 'react-native-ble-plx';
 import * as bleService from '../shared/bleService';
 import { characteristic, nameFromUuid, service } from '../shared/bleConstants';
 
-import { base64FromUint8, uint8FromBase64 } from '../lib/base64';
+import { base64FromUint8, uint8FromBase64 } from '../shared/base64';
 import { BleRecorder } from '../lib/bleRecorder';
 
 const captureName = 'deviceList';

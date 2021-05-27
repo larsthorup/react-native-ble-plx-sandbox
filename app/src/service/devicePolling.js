@@ -1,5 +1,4 @@
-import { Buffer } from 'buffer';
-
+import { uint8FromBase64 } from '../shared/base64';
 import { characteristic, service } from '../shared/bleConstants';
 
 import { getBleManager } from '../singleton/bleManager';
@@ -17,7 +16,7 @@ export const devicePolling = ({ id }) => async (dispatch, getState) => {
         // const characteristics = await bleManager.characteristicsForDevice(id, batteryServiceUuid);
         // console.log(characteristics);
         const batteryLevelCharacteristic = await bleManager.readCharacteristicForDevice(id, service.battery.uuid, characteristic.batteryLevel.uuid);
-        const batteryLevel = Buffer.from(batteryLevelCharacteristic.value, 'base64')[0];
+        const batteryLevel = uint8FromBase64(batteryLevelCharacteristic.value);
         dispatch(bleDeviceBatteryLevel({ id, batteryLevel }));
       }
       const { rssi } = await bleManager.readRSSIForDevice(id);

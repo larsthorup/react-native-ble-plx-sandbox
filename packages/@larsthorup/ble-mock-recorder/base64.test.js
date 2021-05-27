@@ -5,30 +5,12 @@ import { expect } from 'chai';
 import {
   printableFromBase64,
   base64FromString,
-  base64FromUint8,
   bufferFromBase64,
   stringFromBase64,
-  uint8FromBase64,
   isPrintableFromBase64,
 } from './base64.js';
 
 describe('base64', () => {
-  describe('uint8FromBase64', () => {
-    it('should decode integers', () => {
-      expect(uint8FromBase64('AA==')).to.equal(0);
-      expect(uint8FromBase64('Kg==')).to.equal(42);
-      expect(uint8FromBase64('/w==')).to.equal(255);
-    });
-  });
-
-  describe('base64FromUint', () => {
-    it('should encode integers', () => {
-      expect(base64FromUint8(0)).to.equal('AA==');
-      expect(base64FromUint8(42)).to.equal('Kg==');
-      expect(base64FromUint8(255)).to.equal('/w==');
-    });
-  });
-
   describe('stringFromBase64', () => {
     it('should decode strings', () => {
       expect(stringFromBase64('')).to.equal('');

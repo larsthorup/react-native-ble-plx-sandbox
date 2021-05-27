@@ -1,5 +1,5 @@
 import * as util from 'util';
-import { bufferFromBase64, isPrintableFromBase64, printableFromBase64 } from './base64.js';
+import { bufferFromBase64, isPrintableFromBase64, printableFromBase64 } from '@larsthorup/ble-mock-recorder/base64.js';
 import { stringifyBleCaptureEvent, stringifyBleRecord } from './bleCaptureJsonProtocol.js';
 
 const formattedFromBase64 = (value) => {
