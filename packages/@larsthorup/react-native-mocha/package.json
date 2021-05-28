@@ -5,7 +5,7 @@
     "eslint": "eslint . --fix --max-warnings 0 --ignore-path .gitignore",
     "test": "npm run eslint"
   },
-  "dependencies": {
+  "devDependencies": {
     "eslint": "^7.27.0"
   }
 }

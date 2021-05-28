@@ -18,7 +18,7 @@
     "sync:packages:clean": "npm run sync:packages:app:clean && npm run sync:packages:capture:clean && npm run sync:packages:cli:clean",
     "sync:packages:app": "bash -c \"cp -ru packages/@larsthorup app/node_modules\"",
     "sync:packages:app:clean": "bash -c \"rm -rf app/nodes_modules/@larsthorup\"",
-    "sync:packages:capture": "bash -c \"cp -ru packages/@larsthorup capture/node_modules\"",
+    "sync:packages:capture": "bash -c \"cp -ru packages/@larsthorup capture/node_modules\" && rm -rf capture/node_modules/@larsthorup/react-native-mocha/{node_modules,package-lock.json}",
     "sync:packages:capture:clean": "bash -c \"rm -rf capture/nodes_modules/@larsthorup\"",
     "sync:packages:cli": "bash -c \"mkdir -p packages/@larsthorup/react-native-mocha-cli/node_modules/@larsthorup && cp -ru packages/@larsthorup/{ble-mock-recorder,react-native-mocha} packages/@larsthorup/react-native-mocha-cli/node_modules/@larsthorup\"",
     "sync:packages:cli:clean": "bash -c \"rm -rf packages/@larsthorup/react-native-mocha-cli/nodes_modules/@larsthorup\"",
