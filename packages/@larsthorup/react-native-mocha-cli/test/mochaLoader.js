@@ -1,4 +1,5 @@
 /* global mocha */
+// Note: we need the embeddable version of mocha, not the CLI
 import '../node_modules/mocha/mocha.js';
 import { MochaEventReporter } from '@larsthorup/react-native-mocha';
 

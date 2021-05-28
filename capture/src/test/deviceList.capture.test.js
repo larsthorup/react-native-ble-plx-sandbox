@@ -1,5 +1,4 @@
 import { expect } from 'chai';
-import '../lib/mocha';
 
 import { BleManager } from 'react-native-ble-plx';
 

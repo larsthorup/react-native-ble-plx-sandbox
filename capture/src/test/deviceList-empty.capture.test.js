@@ -1,5 +1,3 @@
-import '../lib/mocha';
-
 import * as bleService from '../shared/bleService';
 
 import { BleRecorder } from '@larsthorup/ble-mock-recorder';

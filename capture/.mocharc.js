@@ -1,4 +1,3 @@
-// Note: this file is part of the demo
 export default {
-  timeout: 10000
+  timeout: 5000
 }

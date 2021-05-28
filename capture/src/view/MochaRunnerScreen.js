@@ -1,19 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import { SafeAreaView, ScrollView, StatusBar, StyleSheet, Text } from 'react-native';
-import { run } from '../lib/mocha';
-import { stringifyTestRunnerEvent } from '@larsthorup/react-native-mocha';
+import { MochaEventReporter, stringifyTestRunnerEvent } from '@larsthorup/react-native-mocha';
 
-const TestRunnerScreen = () => {
+const MochaRunnerScreen = () => {
   const [isRunning, setIsRunning] = useState(false);
   const [progress, setProgress] = useState([]);
   useEffect(() => {
-    const log = runnerEvent => {
+    const logger = runnerEvent => {
       console.log(stringifyTestRunnerEvent(runnerEvent));
       setProgress(prev => prev.concat([runnerEvent]));
     };
     if (!isRunning) {
       setIsRunning(true);
-      run(log);
+      MochaRunnerScreen.mocha.reporter(MochaEventReporter, { logger });
+      MochaRunnerScreen.mocha.run();
     }
   }, [isRunning]);
   return (
@@ -90,4 +90,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default TestRunnerScreen;
+export default MochaRunnerScreen;

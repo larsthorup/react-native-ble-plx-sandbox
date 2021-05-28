@@ -1,9 +1,5 @@
 /* global describe, it */
 
-// import mocha from '../node_modules/mocha/mocha.js';
-// const { describe, it } = mocha.Mocha;
-// console.log(Object.keys(mocha.Mocha));
-
 import { expect } from 'chai';
 import * as td from 'testdouble';
 
