@@ -3,10 +3,8 @@ import MochaRunnerScreen from '@larsthorup/react-native-mocha/MochaRunnerScreen'
 import { name as appName } from './app.json';
 import mocha from './src/lib/mochaLoader';
 
-import './src/test/setup.test';
-import './src/test/calc.test';
-import './src/test/deviceList.capture.test';
-import './src/test/deviceList-empty.capture.test';
+// Note: importing all files in directory, supported by "babel-plugin-wildcard"
+import * as test from './src/test'; // eslint-disable-line no-unused-vars
 
 MochaRunnerScreen.mocha = mocha;
 AppRegistry.registerComponent(appName, () => MochaRunnerScreen);
