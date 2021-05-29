@@ -20,7 +20,7 @@
     "sync:packages:app:clean": "bash -c \"rm -rf app/nodes_modules/@larsthorup\"",
     "sync:packages:capture": "bash -c \"cp -ru packages/@larsthorup capture/node_modules\" && rm -rf capture/node_modules/@larsthorup/react-native-mocha/{node_modules,package-lock.json}",
     "sync:packages:capture:clean": "bash -c \"rm -rf capture/nodes_modules/@larsthorup\"",
-    "sync:packages:cli": "bash -c \"mkdir -p packages/@larsthorup/react-native-mocha-cli/node_modules/@larsthorup && cp -ru packages/@larsthorup/{ble-mock-recorder,react-native-mocha} packages/@larsthorup/react-native-mocha-cli/node_modules/@larsthorup\"",
+    "sync:packages:cli": "bash -c \"mkdir -p packages/@larsthorup/react-native-mocha-cli/node_modules/@larsthorup && cp -ru packages/@larsthorup/{ble-mock-recorder,react-native-mocha} packages/@larsthorup/react-native-mocha-cli/node_modules/@larsthorup  && rm -rf packages/@larsthorup/react-native-mocha-cli/node_modules/@larsthorup/react-native-mocha/{node_modules,package-lock.json}\"",
     "sync:packages:cli:clean": "bash -c \"rm -rf packages/@larsthorup/react-native-mocha-cli/nodes_modules/@larsthorup\"",
     "sync:shared": "npm run sync:shared:app && npm run sync:shared:capture",
     "sync:shared:clean": "npm run sync:shared:app:clean && npm run sync:shared:capture:clean",

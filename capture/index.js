@@ -1,5 +1,5 @@
 import { AppRegistry } from 'react-native';
-import { MochaRunnerScreen } from '@larsthorup/react-native-mocha';
+import MochaRunnerScreen from '@larsthorup/react-native-mocha/MochaRunnerScreen';
 import { name as appName } from './app.json';
 import mocha from './src/lib/mochaLoader';
 

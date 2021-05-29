@@ -7,7 +7,7 @@
     "android": "react-native run-android",
     "android:assemble": "cd android && bash ./gradlew assembleDebug --console=plain",
     "android:build": "bash -c \"mkdir -p android/app/src/main/assets\" && npm run android:bundle && npm run android:assemble",
-    "android:bundle": "react-native bundle --platform android --dev false --entry-file index.js --bundle-output android/app/src/main/assets/index.android.bundle --assets-dest android/app/src/main/res/",
+    "android:bundle": "react-native bundle --reset-cache --platform android --dev false --entry-file index.js --bundle-output android/app/src/main/assets/index.android.bundle --assets-dest android/app/src/main/res/",
     "android:install": "adb install -r android/app/build/outputs/apk/debug/app-debug.apk",
     "android:launch": "dotenv -- bash -c 'adb shell am start -n $PACKAGE_NAME/.MainActivity'",
     "android:log:clear": "adb logcat -c",
