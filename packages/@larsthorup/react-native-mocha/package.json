@@ -3,6 +3,7 @@
   "type": "module",
   "scripts": {
     "eslint": "eslint . --fix --max-warnings 0 --ignore-path .gitignore",
+    "pack": "rm -rf *.tgz && npm pack && mv *.tgz larsthorup-react-native-mocha-local.tgz",
     "test": "npm run eslint"
   },
   "devDependencies": {

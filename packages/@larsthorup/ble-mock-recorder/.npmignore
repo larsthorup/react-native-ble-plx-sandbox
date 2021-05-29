@@ -1,0 +1,4 @@
+.*.json
+*.test.js
+coverage
+*.tgz

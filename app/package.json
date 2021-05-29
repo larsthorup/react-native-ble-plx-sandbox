@@ -10,7 +10,8 @@
     "jest:coverage": "jest --coverage",
     "android:log": "adb logcat *:S ReactNative:V ReactNativeJS:V",
     "start": "react-native start",
-    "test": "npm run eslint && npm run jest:coverage"
+    "test": "npm run eslint && npm run jest:coverage",
+    "unpack": "rm -rf node_modules/@larsthorup && npm install --no-save ../packages/@larsthorup/ble-mock-recorder/larsthorup-ble-mock-recorder-local.tgz"
   },
   "dependencies": {
     "@testing-library/jest-native": "^4.0.1",

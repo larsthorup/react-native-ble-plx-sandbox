@@ -1,11 +1,13 @@
 {
-  "name": "@larsthorup/react-native-mocha",
+  "name": "@larsthorup/react-native-mocha-cli",
   "type": "module",
   "scripts": {
     "c8": "c8 --reporter=lcov --reporter=text-summary mocha",
     "eslint": "eslint . --fix --max-warnings 0 --ignore-path .gitignore",
     "mocha": "mocha",
-    "test": "npm run eslint && npm run c8"
+    "pack": "rm -rf *.tgz && npm pack && mv *.tgz larsthorup-react-native-mocha-cli-local.tgz",
+    "test": "npm run eslint && npm run c8",
+    "unpack": "rm -rf node_modules/@larsthorup && npm install --no-save ../ble-mock-recorder/larsthorup-ble-mock-recorder-local.tgz ../react-native-mocha/larsthorup-react-native-mocha-local.tgz"
   },
   "dependencies": {
     "c8": "^7.7.2",

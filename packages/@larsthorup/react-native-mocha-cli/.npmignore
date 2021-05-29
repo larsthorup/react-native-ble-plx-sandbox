@@ -1,6 +1,7 @@
-.nyc_output/
+.*.json
+*.test.js
 artifact/
 coverage/
 output/
-node_modules/
+test/
 *.tgz

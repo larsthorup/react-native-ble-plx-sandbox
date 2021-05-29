@@ -17,7 +17,8 @@
     "eslint": "eslint . --fix --max-warnings 0 --ignore-path .gitignore",
     "ios": "react-native run-ios",
     "start": "react-native start",
-    "test": "npm run ci && npm run android:build && npm run android:stop && npm run android:install && npm run capture"
+    "test": "npm run ci && npm run android:build && npm run android:stop && npm run android:install && npm run capture",
+    "unpack": "rm -rf node_modules/@larsthorup && npm install --no-save ../packages/@larsthorup/ble-mock-recorder/larsthorup-ble-mock-recorder-local.tgz ../packages/@larsthorup/react-native-mocha/larsthorup-react-native-mocha-local.tgz ../packages/@larsthorup/react-native-mocha-cli/larsthorup-react-native-mocha-cli-local.tgz"
   },
   "dependencies": {
     "@babel/eslint-parser": "^7.14.3",
