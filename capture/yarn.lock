@@ -1096,8 +1096,9 @@
     "chalk" "^4.0.0"
 
 "@larsthorup/ble-mock-recorder@file:../packages/@larsthorup/ble-mock-recorder/larsthorup-ble-mock-recorder-local.tgz":
-  "integrity" "sha512-fO3pje7fVMVr4vO1dM5bjYNYrxOik0Q7lFQoQTtlLrdtCScJMKb36tInxJ/Mmbf99jx2K8S1NDG2UlMa3Zhs7g=="
+  "integrity" "sha512-7J//EYAAEJ4TcUpdEinnugSfg4hKBiXjM25RLwJ1QE+vy6UYrp5gYZZW+HVGjz4mKrTM4+J017bvzpQp2YpIeA=="
   "resolved" "file:../packages/@larsthorup/ble-mock-recorder/larsthorup-ble-mock-recorder-local.tgz"
+  "version" "0.1.0"
   dependencies:
     "buffer" "^6.0.3"
     "c8" "^7.7.2"
@@ -1108,8 +1109,9 @@
     "testdouble" "^3.16.1"
 
 "@larsthorup/react-native-mocha-cli@file:../packages/@larsthorup/react-native-mocha-cli/larsthorup-react-native-mocha-cli-local.tgz":
-  "integrity" "sha512-VnLqEai4PqMVptj/PH6T1FIOyE15eALEBPqSxBG+HuSSesfDAZPcTiDUH77HIG4V1iHgc8lSL0VhSzPMneA/Eg=="
+  "integrity" "sha512-lstebVgxSl+84FV0WmIDLXGzC9fas6WrSQxTJo4qnWYLoqk0srDaD+T/didhnorrO03RNw7iRTqVuYEIA18mqw=="
   "resolved" "file:../packages/@larsthorup/react-native-mocha-cli/larsthorup-react-native-mocha-cli-local.tgz"
+  "version" "0.1.0"
   dependencies:
     "c8" "^7.7.2"
     "chai" "^4.3.4"
@@ -1119,8 +1121,9 @@
     "testdouble" "^3.16.1"
 
 "@larsthorup/react-native-mocha@file:../packages/@larsthorup/react-native-mocha/larsthorup-react-native-mocha-local.tgz":
-  "integrity" "sha512-OwklTyr/dBr5Bc5NRKOd9l+QZaF9R4o2P+taIwYXyvvQHt0Muepuge2eVwDjBSLL4AXW3zlNHka1hjxuO0OfVQ=="
+  "integrity" "sha512-dnqZSCPzajLBeY9kk0FJLdLAjdKcn+XYI2P1Xhd4Emr6xgVXb3PuTri8lUjPNQzmXjO403orPz8FC++05IxlrQ=="
   "resolved" "file:../packages/@larsthorup/react-native-mocha/larsthorup-react-native-mocha-local.tgz"
+  "version" "0.1.0"
 
 "@react-native-community/cli-debugger-ui@^5.0.1-alpha.1":
   "integrity" "sha512-o6msDywXU7q0dPKhCTo8IrpmJ+7o+kVghyHlrAndnb30p6vnm4pID5Yi7lHXGfs6bQXorKUWX8oD5xYwWkN8qw=="

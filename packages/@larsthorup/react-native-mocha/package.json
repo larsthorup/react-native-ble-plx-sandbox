@@ -1,5 +1,6 @@
 {
   "name": "@larsthorup/react-native-mocha",
+  "version": "0.1.0",
   "type": "module",
   "scripts": {
     "eslint": "eslint . --fix --max-warnings 0 --ignore-path .gitignore",

@@ -1265,8 +1265,9 @@
     "chalk" "^4.0.0"
 
 "@larsthorup/ble-mock-recorder@file:../packages/@larsthorup/ble-mock-recorder/larsthorup-ble-mock-recorder-local.tgz":
-  "integrity" "sha512-fO3pje7fVMVr4vO1dM5bjYNYrxOik0Q7lFQoQTtlLrdtCScJMKb36tInxJ/Mmbf99jx2K8S1NDG2UlMa3Zhs7g=="
+  "integrity" "sha512-7J//EYAAEJ4TcUpdEinnugSfg4hKBiXjM25RLwJ1QE+vy6UYrp5gYZZW+HVGjz4mKrTM4+J017bvzpQp2YpIeA=="
   "resolved" "file:../packages/@larsthorup/ble-mock-recorder/larsthorup-ble-mock-recorder-local.tgz"
+  "version" "0.1.0"
   dependencies:
     "buffer" "^6.0.3"
     "c8" "^7.7.2"
