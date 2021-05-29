@@ -6,17 +6,17 @@ module.exports = {
     'prettier/prettier': 'off',
   },
   // Note: needed for top level await in testRunnerCli
-  parser: "@babel/eslint-parser",
+  parser: '@babel/eslint-parser',
   parserOptions: {
     ecmaVersion: 2021,
-    sourceType: 'module'
+    sourceType: 'module',
   },
   overrides: [
     {
       files: '*.test.js',
       env: {
-        'mocha': true
-      }
-    }
-  ]
+        'mocha': true,
+      },
+    },
+  ],
 };
