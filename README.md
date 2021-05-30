@@ -4,6 +4,8 @@
 
 Prerequisites:
 
+- A Bluetooth device support the standard Battery Service
+- An Android phone
 - Setup your environment: https://reactnative.dev/docs/environment-setup
 - Use bash
 
@@ -40,3 +42,10 @@ npm run android:log
 
 - add permissions in android/app/src/main/AndroidManifest.xml
 - configure package name in .env
+
+## Publish packages
+
+```bash
+npm run bump
+npm run publish
+```

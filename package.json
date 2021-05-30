@@ -1,7 +1,12 @@
 {
   "name": "react-native-ble-plx-sandbox",
+  "private": true,
   "scripts": {
     "android": "cd app && npm run android",
+    "bump": "npm run bump:ble-mock-recorder && npm run bump:react-native-mocha && npm run bump:react-native-mocha-cli",
+    "bump:ble-mock-recorder": "cd packages/@larsthorup/ble-mock-recorder && npm run bump",
+    "bump:react-native-mocha": "cd packages/@larsthorup/react-native-mocha && npm run bump",
+    "bump:react-native-mocha-cli": "cd packages/@larsthorup/react-native-mocha-cli && npm run bump",
     "ci": "npm run pack && npm run unpack && npm run sync && npm run test:ble-mock-recorder && npm run test:react-native-mocha && npm run test:react-native-mocha-cli && npm run ci:capture && npm run test:app",
     "ci:capture": "cd capture && npm run ci",
     "clean": "git clean -f -d -X",
@@ -16,6 +21,10 @@
     "pack:react-native-mocha": "cd packages/@larsthorup/react-native-mocha && npm run pack",
     "pack:react-native-mocha-cli": "cd packages/@larsthorup/react-native-mocha-cli && npm run pack",
     "postinstall": "npm run install:packages && npm run install:capture && npm run install:app && npm run pack && npm run unpack && npm run sync",
+    "publish": "npm run publish:ble-mock-recorder && npm run publish:react-native-mocha && npm run publish:react-native-mocha-cli",
+    "publish:ble-mock-recorder": "cd packages/@larsthorup/ble-mock-recorder && npm publish",
+    "publish:react-native-mocha": "cd packages/@larsthorup/react-native-mocha && npm publish",
+    "publish:react-native-mocha-cli": "cd packages/@larsthorup/react-native-mocha-cli && npm publish",
     "start": "cd app && npm start",
     "sync": "npm run sync:shared",
     "sync:shared": "npm run sync:shared:app && npm run sync:shared:capture",

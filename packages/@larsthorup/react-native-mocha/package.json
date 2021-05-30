@@ -1,8 +1,9 @@
 {
   "name": "@larsthorup/react-native-mocha",
-  "version": "0.1.0",
+  "version": "0.0.2",
   "type": "module",
   "scripts": {
+    "bump": "npm --no-git-tag-version version patch",
     "eslint": "eslint . --fix --max-warnings 0 --ignore-path .gitignore",
     "pack": "rm -rf *.tgz && npm pack && mv *.tgz larsthorup-react-native-mocha-local.tgz",
     "test": "npm run eslint"
