@@ -12,11 +12,14 @@
     "unpack": "rm -rf node_modules/@larsthorup && npm install --no-save ../ble-mock-recorder/larsthorup-ble-mock-recorder-local.tgz ../react-native-mocha/larsthorup-react-native-mocha-local.tgz"
   },
   "dependencies": {
+    "chalk": "^4.1.1",
+    "mocha": "^8.4.0",
+    "util": "^0.12.3"
+  },
+  "devDependencies": {
     "c8": "^7.7.2",
     "chai": "^4.3.4",
-    "chalk": "^4.1.1",
     "eslint": "^7.27.0",
-    "mocha": "^8.4.0",
     "testdouble": "^3.16.1"
   }
 }

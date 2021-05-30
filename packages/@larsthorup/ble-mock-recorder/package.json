@@ -12,9 +12,12 @@
   },
   "dependencies": {
     "buffer": "^6.0.3",
+    "deep-equal": "^2.0.5",
+    "util": "^0.12.3"
+  },
+  "devDependencies": {
     "c8": "^7.7.2",
     "chai": "^4.3.4",
-    "deep-equal": "^2.0.5",
     "eslint": "^7.27.0",
     "mocha": "^8.4.0",
     "testdouble": "^3.16.1"
