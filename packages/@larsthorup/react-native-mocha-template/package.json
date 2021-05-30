@@ -1,0 +1,8 @@
+{
+  "name": "@larsthorup/react-native-mocha-template",
+  "version": "0.0.2",
+  "description": "React Native Mocha Template",
+  "repository": "git+https://github.com/larsthorup/react-native-ble-plx-sandbox.git",
+  "author": "Lars Thorup <lars@zealake.com>",
+  "license": "MIT"
+}
