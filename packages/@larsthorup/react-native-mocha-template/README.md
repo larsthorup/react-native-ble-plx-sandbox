@@ -2,6 +2,8 @@
 
 ```bash
 npx react-native init SomeApp --template @larsthorup/react-native-mocha-template
+cd SomeApp
+npm test
 ```
 
 ## Development

@@ -46,6 +46,8 @@ npm run android:log
 ## Publish packages
 
 ```bash
+npm test
 npm run bump
 npm run publish
+# git commit && git push
 ```
