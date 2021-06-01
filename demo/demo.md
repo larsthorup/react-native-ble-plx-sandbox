@@ -54,6 +54,7 @@ npm test
 ```
 
 Your phone should show something like this:
+
 ![](./bleAppRecorder.png)
 
 ## Set up the app test
@@ -92,4 +93,4 @@ npm test
 
 Your terminal should show something like this:
 
-![](./app.test.js.png)
+![](./App-test.png)
