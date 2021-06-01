@@ -11,3 +11,10 @@ npm test
 ```bash
 npx react-native init SomeApp --template file:///c:/r/larsthorup/react-native-ble-plx-sandbox/packages/@larsthorup/react-native-mocha-template
 ```
+
+## Publish
+
+```bash
+npm run bump
+npm publish
+```

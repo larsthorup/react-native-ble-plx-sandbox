@@ -1,8 +1,11 @@
 {
   "name": "@larsthorup/react-native-mocha-template",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "React Native Mocha Template",
   "repository": "git+https://github.com/larsthorup/react-native-ble-plx-sandbox.git",
   "author": "Lars Thorup <lars@zealake.com>",
-  "license": "MIT"
+  "license": "MIT",
+  "scripts": {
+    "bump": "npm --no-git-tag-version version patch"
+  }
 }
