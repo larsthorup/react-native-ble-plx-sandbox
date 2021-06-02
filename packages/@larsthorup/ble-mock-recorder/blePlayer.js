@@ -38,17 +38,25 @@ export class BlePlayer {
     return record;
   }
 
+  _sincePosition(index) {
+    const itemPrefix = '\n  {';
+    const recording = JSON.stringify(this._recording, null, 2);
+    const position = recording.split(itemPrefix, index + 1).join(itemPrefix).length;
+    const lineNumber = recording.substr(0, position).split('\n').length + 1;
+    return `since line ${lineNumber} (index ${index})`;
+  }
+
   _expectCommand({ command, request }, skipThrow = false) {
     const fromRecordIndex = this._nextRecordIndex;
     this.playUntilCommand(); // Note: flush any additionally recorded events
     if (this._nextRecordIndex >= this._recording.length) {
-      this._error(`BleManagerMock: missing record for "${command}" with request\n"${JSON.stringify(request)}" since index ${fromRecordIndex}`, skipThrow);
+      this._error(`BleManagerMock: missing record for "${command}" with request\n"${JSON.stringify(request)}" ${this._sincePosition(fromRecordIndex)}`, skipThrow);
       return;
     }
     const record = this._popRecord();
     const { response } = record;
     if (record.command !== command) {
-      this._error(`BleManagerMock: missing record for "${command}" with request "${JSON.stringify(request)}", found ${JSON.stringify(record)} since index ${fromRecordIndex}`, skipThrow);
+      this._error(`BleManagerMock: missing record for "${command}" with request "${JSON.stringify(request)}", found ${JSON.stringify(record)} ${this._sincePosition(fromRecordIndex)}`, skipThrow);
       return;
     }
     if (!deepEqual(record.request, request)) {
@@ -174,7 +182,7 @@ export class BlePlayer {
       const fromRecordIndex = this._nextRecordIndex;
       while (true) {
         if (this._nextRecordIndex >= this._recording.length) {
-          throw new Error(`BleManagerMock: label "${label}" not found in recording since index ${fromRecordIndex}`);
+          throw new Error(`BleManagerMock: label "${label}" not found in recording ${this._sincePosition(fromRecordIndex)}`);
         }
         const record = this._peekRecord();
         if (record.type === 'label' && record.label === label) {
@@ -192,7 +200,7 @@ export class BlePlayer {
   expectFullCaptureCoverage() {
     const remainingRecordCount = this._recording.length - this._nextRecordIndex;
     if (remainingRecordCount > 0) {
-      throw new Error(`Expected recording to be fully covered but last ${remainingRecordCount} records were not played`);
+      throw new Error(`Expected recording to be fully covered but last ${remainingRecordCount} records ${this._sincePosition(this._nextRecordIndex)} were not played`);
     }
   }
 }

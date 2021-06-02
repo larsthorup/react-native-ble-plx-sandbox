@@ -50,3 +50,46 @@ describe(BleManagerMock.name, () => {
     });
   });
 });
+
+describe('BlePlayer', () => {
+  it('should report error by line number', async () => {
+    const bleManager = new BleManagerMock();
+    const { blePlayer } = bleManager;
+    const recording = [
+      {
+        type: 'command',
+        command: 'monitorCharacteristicForDevice',
+        request: {
+          id: 'some-device-id',
+          serviceUUID: 'some-service-uuid',
+          characteristicUUID: 'some-characteristic-uuid',
+        },
+      },
+      {
+        type: 'event',
+        event: 'characteristic',
+        args: {
+          characteristic: {
+            serviceUUID: 'some-service-uuid',
+            uuid: 'some-characteristic-uuid',
+            value: 'some-value',
+          },
+        },
+      },
+      {
+        type: 'label',
+        label: 'characteristic-received',
+      },
+    ];
+    blePlayer.mockWith(recording);
+    const subscription = bleManager.monitorCharacteristicForDevice('some-device-id', 'some-service-uuid', 'some-characteristic-uuid', () => { });
+
+    const expectedLineNumber = 11;
+    expect(JSON.stringify(recording, null, 2).split('\n').slice(expectedLineNumber - 1, expectedLineNumber + 2)).to.deep.equal([
+      '  {',
+      '    "type": "event",',
+      '    "event": "characteristic",',
+    ]);
+    expect(() => blePlayer.expectFullCaptureCoverage()).to.throw(`Expected recording to be fully covered but last 2 records since line ${expectedLineNumber} (index 1) were not played`);
+  });
+});
