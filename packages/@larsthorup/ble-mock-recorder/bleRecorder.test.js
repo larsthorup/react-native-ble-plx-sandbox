@@ -30,7 +30,7 @@ describe('bleRecorder', () => {
       const bleRecorder = new BleRecorder({ bleManager: bleManagerFake, logger });
       bleRecorder.close();
       expect(captureLog).to.deep.equal([
-        { event: 'init', name: 'default' },
+        { event: 'init', name: 'default', version: '1.0.0' },
         { event: 'save', name: 'default' },
       ]);
       expect(bleLog).to.deep.equal([]);
@@ -45,7 +45,7 @@ describe('bleRecorder', () => {
       const bleRecorder = new BleRecorder({ bleManager: bleManagerFake, captureName, logger });
       bleRecorder.close();
       expect(captureLog).to.deep.equal([
-        { event: 'init', name: 'some-capture-name' },
+        { event: 'init', name: 'some-capture-name', version: '1.0.0' },
         { event: 'save', name: 'some-capture-name' },
       ]);
       expect(bleLog).to.deep.equal([]);

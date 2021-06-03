@@ -58,7 +58,7 @@ export const launch = async ({ appName, env, exec, expectedFailCount, log, spawn
     }
   } while (true);
 
-  let bleRecording = [];
+  let bleRecording = null;
   let failCount = 0;
   // wait for event: complete
   await new Promise((resolve) => {
@@ -98,18 +98,21 @@ export const launch = async ({ appName, env, exec, expectedFailCount, log, spawn
             break;
         }
       } else if (bleRecord) {
-        bleRecording.push(bleRecord);
+        bleRecording.records.push(bleRecord);
       } else if (bleCaptureEvent) {
-        const { event, name } = bleCaptureEvent;
+        const { event, name, version } = bleCaptureEvent;
         switch (event) {
           case 'init':
-            bleRecording = [];
+            bleRecording = {
+              records: [],
+              version,
+            };
             break;
           case 'save':
             fs.mkdirSync('./artifact', { recursive: true });
             const capturePath = `./artifact/${name}.capture.json`;
             fs.writeFileSync(capturePath, JSON.stringify(bleRecording, null, 2));
-            log(`(BLE capture file saved in ${capturePath}: ${bleRecording.length} records)`);
+            log(`(BLE capture file saved in ${capturePath}: ${bleRecording.records.length} records)`);
             break;
         }
       } else if (logCatIgnorePrefixList.some((prefix) => line.startsWith(prefix))) {

@@ -11,7 +11,7 @@ export class BlePlayer {
     delete this._deviceDisconnectedListener;
     delete this._deviceScanListener;
     delete this._stateChangeListener;
-    this._recording = [];
+    this._recording = { records: [] };
     this._nextRecordIndex = 0;
   }
 
@@ -24,10 +24,10 @@ export class BlePlayer {
   }
 
   _peekRecord() {
-    if (this._nextRecordIndex >= this._recording.length) {
-      this._error(`Assertion failed: ${this._nextRecordIndex} < ${this._recording.length}`);
+    if (this._nextRecordIndex >= this._recording.records.length) {
+      this._error(`Assertion failed: ${this._nextRecordIndex} < ${this._recording.records.length}`);
     }
-    const record = this._recording[this._nextRecordIndex];
+    const record = this._recording.records[this._nextRecordIndex];
     return record;
   }
 
@@ -39,7 +39,7 @@ export class BlePlayer {
   }
 
   _sincePosition(index) {
-    const itemPrefix = '\n  {';
+    const itemPrefix = '\n    {';
     const recording = JSON.stringify(this._recording, null, 2);
     const position = recording.split(itemPrefix, index + 1).join(itemPrefix).length;
     const lineNumber = recording.substr(0, position).split('\n').length + 1;
@@ -49,7 +49,7 @@ export class BlePlayer {
   _expectCommand({ command, request }, skipThrow = false) {
     const fromRecordIndex = this._nextRecordIndex;
     this.playUntilCommand(); // Note: flush any additionally recorded events
-    if (this._nextRecordIndex >= this._recording.length) {
+    if (this._nextRecordIndex >= this._recording.records.length) {
       this._error(`BleManagerMock: missing record for "${command}" with request\n"${JSON.stringify(request)}" ${this._sincePosition(fromRecordIndex)}`, skipThrow);
       return;
     }
@@ -69,7 +69,7 @@ export class BlePlayer {
 
   _autoPlayEvents() {
     while (true) {
-      if (this._nextRecordIndex >= this._recording.length) {
+      if (this._nextRecordIndex >= this._recording.records.length) {
         break;
       }
       const record = this._peekRecord();
@@ -162,7 +162,7 @@ export class BlePlayer {
   playUntilCommand() {
     try {
       while (true) {
-        if (this._nextRecordIndex >= this._recording.length) {
+        if (this._nextRecordIndex >= this._recording.records.length) {
           break;
         }
         const record = this._peekRecord();
@@ -181,7 +181,7 @@ export class BlePlayer {
     try {
       const fromRecordIndex = this._nextRecordIndex;
       while (true) {
-        if (this._nextRecordIndex >= this._recording.length) {
+        if (this._nextRecordIndex >= this._recording.records.length) {
           throw new Error(`BleManagerMock: label "${label}" not found in recording ${this._sincePosition(fromRecordIndex)}`);
         }
         const record = this._peekRecord();
@@ -198,7 +198,7 @@ export class BlePlayer {
   }
 
   expectFullCaptureCoverage() {
-    const remainingRecordCount = this._recording.length - this._nextRecordIndex;
+    const remainingRecordCount = this._recording.records.length - this._nextRecordIndex;
     if (remainingRecordCount > 0) {
       throw new Error(`Expected recording to be fully covered but last ${remainingRecordCount} records ${this._sincePosition(this._nextRecordIndex)} were not played`);
     }

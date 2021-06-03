@@ -107,14 +107,17 @@ const expectedOutputRegExp = [
   'Done!',
 ];
 
-const expectedCaptureFile = [
-  {
-    'type': 'command',
-    'command': 'state',
-    'request': {},
-    'response': 'some-state',
-  },
-];
+const expectedCaptureFile = {
+  records: [
+    {
+      'type': 'command',
+      'command': 'state',
+      'request': {},
+      'response': 'some-state',
+    },
+  ],
+  version: '1.0.0',
+};
 
 describe(launch.name, () => {
   describe('passing with expected number of failures', () => {

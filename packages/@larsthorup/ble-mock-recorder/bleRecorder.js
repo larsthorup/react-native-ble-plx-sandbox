@@ -2,6 +2,8 @@ import * as util from 'util';
 import { bufferFromBase64, isPrintableFromBase64, printableFromBase64 } from './base64.js';
 import { stringifyBleCaptureEvent, stringifyBleRecord } from './bleCaptureJsonProtocol.js';
 
+const recordingFileFormatVersion = '1.0.0';
+
 const formattedFromBase64 = (value) => {
   const valueBufferFormatted = util.format(bufferFromBase64(value));
   if (isPrintableFromBase64(value)) {
@@ -338,7 +340,7 @@ export class BleRecorder {
       ['deviceScan']: { seen: 0 },
     };
     this._recordValueQueue = [];
-    this._capture({ event: 'init', name: this.captureName });
+    this._capture({ event: 'init', name: this.captureName, version: recordingFileFormatVersion });
   }
 
   _log(line) {

@@ -58,34 +58,37 @@ describe('DeviceList', () => {
   describe('manual mocking', () => {
     it('should display empty list of BLE devices', async () => {
       const { blePlayer } = getBleManager();
-      blePlayer.mockWith([
-        {
-          'type': 'command',
-          'command': 'onStateChange',
-          'request': {
-            'emitCurrentState': true,
+      blePlayer.mockWith({
+        records: [
+          {
+            'type': 'command',
+            'command': 'onStateChange',
+            'request': {
+              'emitCurrentState': true,
+            },
           },
-        },
-        {
-          'type': 'event',
-          'event': 'stateChange',
-          'args': {
-            'powerState': 'PoweredOn',
+          {
+            'type': 'event',
+            'event': 'stateChange',
+            'args': {
+              'powerState': 'PoweredOn',
+            },
           },
-        },
-        {
-          'type': 'command',
-          'command': 'startDeviceScan',
-          'request': {
-            'uuidList': null,
-            'scanOptions': null,
+          {
+            'type': 'command',
+            'command': 'startDeviceScan',
+            'request': {
+              'uuidList': null,
+              'scanOptions': null,
+            },
           },
-        },
-        {
-          'type': 'label',
-          'label': 'powered',
-        },
-      ]);
+          {
+            'type': 'label',
+            'label': 'powered',
+          },
+        ],
+        version: '1.0.0',
+      });
 
       // when: render the app
       const { queryAllByA11yLabel, getByA11yLabel } = render(withStore(<DeviceListScreen />, configureStore()));
@@ -105,33 +108,36 @@ describe('DeviceList', () => {
 
     it('should display list of BLE devices', async () => {
       const { blePlayer } = getBleManager();
-      blePlayer.mockWith([
-        {
-          'type': 'command',
-          'command': 'onStateChange',
-          'request': {
-            'emitCurrentState': true,
+      blePlayer.mockWith({
+        records: [
+          {
+            'type': 'command',
+            'command': 'onStateChange',
+            'request': {
+              'emitCurrentState': true,
+            },
           },
-        },
-        {
-          'type': 'event',
-          'event': 'stateChange',
-          'args': {
-            'powerState': 'PoweredOn',
+          {
+            'type': 'event',
+            'event': 'stateChange',
+            'args': {
+              'powerState': 'PoweredOn',
+            },
           },
-        },
-        {
-          'type': 'command',
-          'command': 'startDeviceScan',
-          'request': {
-            'uuidList': null,
-            'scanOptions': null,
+          {
+            'type': 'command',
+            'command': 'startDeviceScan',
+            'request': {
+              'uuidList': null,
+              'scanOptions': null,
+            },
           },
-        },
-        { type: 'event', event: 'deviceScan', args: { device: { id: 'SND', name: 'SomeDeviceName' } } },
-        { type: 'event', event: 'deviceScan', args: { device: { id: 'SON', name: 'SomeOtherName' } } },
-        { type: 'label', label: 'scanned' },
-      ]);
+          { type: 'event', event: 'deviceScan', args: { device: { id: 'SND', name: 'SomeDeviceName' } } },
+          { type: 'event', event: 'deviceScan', args: { device: { id: 'SON', name: 'SomeOtherName' } } },
+          { type: 'label', label: 'scanned' },
+        ],
+        version: '1.0.0',
+      });
 
       // when: render the app
       const { getAllByA11yLabel } = render(withStore(<DeviceListScreen />, configureStore()));
@@ -153,34 +159,37 @@ describe('DeviceList', () => {
 
     it('should display list of BLE devices as they appear', async () => {
       const { blePlayer } = getBleManager();
-      blePlayer.mockWith([
-        {
-          'type': 'command',
-          'command': 'onStateChange',
-          'request': {
-            'emitCurrentState': true,
+      blePlayer.mockWith({
+        records: [
+          {
+            'type': 'command',
+            'command': 'onStateChange',
+            'request': {
+              'emitCurrentState': true,
+            },
           },
-        },
-        {
-          'type': 'event',
-          'event': 'stateChange',
-          'args': {
-            'powerState': 'PoweredOn',
+          {
+            'type': 'event',
+            'event': 'stateChange',
+            'args': {
+              'powerState': 'PoweredOn',
+            },
           },
-        },
-        {
-          'type': 'command',
-          'command': 'startDeviceScan',
-          'request': {
-            'uuidList': null,
-            'scanOptions': null,
+          {
+            'type': 'command',
+            'command': 'startDeviceScan',
+            'request': {
+              'uuidList': null,
+              'scanOptions': null,
+            },
           },
-        },
-        { type: 'event', event: 'deviceScan', args: { device: { id: 'SDN', name: 'SomeDeviceName' } } },
-        { type: 'label', label: 'some-scanned' },
-        { type: 'event', event: 'deviceScan', args: { device: { id: 'SON', name: 'SomeOtherName' } } },
-        { type: 'label', label: 'all-scanned' },
-      ]);
+          { type: 'event', event: 'deviceScan', args: { device: { id: 'SDN', name: 'SomeDeviceName' } } },
+          { type: 'label', label: 'some-scanned' },
+          { type: 'event', event: 'deviceScan', args: { device: { id: 'SON', name: 'SomeOtherName' } } },
+          { type: 'label', label: 'all-scanned' },
+        ],
+        version: '1.0.0',
+      });
 
       // when: render the app
       const { getAllByA11yLabel } = render(withStore(<DeviceListScreen />, configureStore()));

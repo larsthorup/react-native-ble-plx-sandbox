@@ -1,28 +1,31 @@
-[
-  {
-    "type": "command",
-    "command": "onStateChange",
-    "request": {
-      "emitCurrentState": true
+{
+  "records": [
+    {
+      "type": "command",
+      "command": "onStateChange",
+      "request": {
+        "emitCurrentState": true
+      }
+    },
+    {
+      "type": "event",
+      "event": "stateChange",
+      "args": {
+        "powerState": "PoweredOn"
+      }
+    },
+    {
+      "type": "command",
+      "command": "startDeviceScan",
+      "request": {
+        "uuidList": null,
+        "scanOptions": null
+      }
+    },
+    {
+      "type": "label",
+      "label": "scanned"
     }
-  },
-  {
-    "type": "event",
-    "event": "stateChange",
-    "args": {
-      "powerState": "PoweredOn"
-    }
-  },
-  {
-    "type": "command",
-    "command": "startDeviceScan",
-    "request": {
-      "uuidList": null,
-      "scanOptions": null
-    }
-  },
-  {
-    "type": "label",
-    "label": "scanned"
-  }
-]
+  ],
+  "version": "1.0.0"
+}
