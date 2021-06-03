@@ -47,6 +47,8 @@ npm run android:log
 
 ```bash
 npm test
+# git commit && git push
+# wait for CI to pass
 npm run bump
 npm run publish
 # git commit && git push
