@@ -13,7 +13,7 @@ describe('DeviceList', () => {
   describe('auto-mocking', () => {
     // for (const _ of '*'.repeat(1000))
     it('should load and show device info', async () => {
-      const spec = JSON.parse(fs.readFileSync('../capture/artifact/deviceList.recording.json'));
+      const spec = JSON.parse(fs.readFileSync('../recorder/artifact/deviceList.recording.json'));
       const { blePlayer } = getBleManager();
       blePlayer.mockWith(spec);
 

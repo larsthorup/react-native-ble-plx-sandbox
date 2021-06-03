@@ -1,4 +1,4 @@
-// Warning: edit the source in /shared, not in /{app,capture}/src/shared
+// Warning: edit the source in /shared, not in /{app,recorder}/src/shared
 // and use `npm run sync`
 
 import { State as BleState } from 'react-native-ble-plx';
