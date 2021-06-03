@@ -86,7 +86,7 @@ const expectOutputMatch = (output, expectedOutputRegExp) => {
   }
 };
 
-const expectedCapturePath = './artifact/rnMochaLauncher.test.simulated.capture.json';
+const expectedRecordingPath = './artifact/rnMochaLauncher.test.simulated.recording.json';
 
 const expectedOutputRegExp = [
   'Launching test runner on device...',
@@ -100,14 +100,14 @@ const expectedOutputRegExp = [
   `  ${chalk.yellow('-')} should report pending`,
   '> calc - complete',
   '> state',
-  `(BLE capture file saved in ${expectedCapturePath}: 1 records)`,
+  `(BLE recording file saved in ${expectedRecordingPath}: 1 records)`,
   `  ${chalk.green('√')} should record command with request and response (\\d+ ms)`,
   '> state - complete',
   '> complete',
   'Done!',
 ];
 
-const expectedCaptureFile = {
+const expectedRecordingFile = {
   records: [
     {
       'type': 'command',
@@ -121,7 +121,7 @@ const expectedCaptureFile = {
 
 describe(launch.name, () => {
   describe('passing with expected number of failures', () => {
-    it('exits with 0 and produces correct output and capture file', async () => {
+    it('exits with 0 and produces correct output and recording file', async () => {
       const exec = createExecMock();
       const expectedFailCount = 1;
       const output = [];
@@ -132,13 +132,13 @@ describe(launch.name, () => {
       expectOutputMatch(output, expectedOutputRegExp.concat([
         'Success (1 test failed as expected)!',
       ]));
-      const captureFile = JSON.parse(fs.readFileSync(expectedCapturePath));
-      expect(captureFile).to.deep.equal(expectedCaptureFile);
+      const recordingFile = JSON.parse(fs.readFileSync(expectedRecordingPath));
+      expect(recordingFile).to.deep.equal(expectedRecordingFile);
     });
   });
 
   describe('failing', () => {
-    it('exits with 1 and produces correct output and capture file', async () => {
+    it('exits with code 1 and produces correct output and recording file', async () => {
       // given an expectation of no tests to fail
       const expectedFailCount = 0;
       const exec = createExecMock();
@@ -150,8 +150,8 @@ describe(launch.name, () => {
       expectOutputMatch(output, expectedOutputRegExp.concat([
         '1 test failed!',
       ]));
-      const captureFile = JSON.parse(fs.readFileSync(expectedCapturePath));
-      expect(captureFile).to.deep.equal(expectedCaptureFile);
+      const recordingFile = JSON.parse(fs.readFileSync(expectedRecordingPath));
+      expect(recordingFile).to.deep.equal(expectedRecordingFile);
     });
   });
 });

@@ -197,7 +197,7 @@ export class BlePlayer {
     }
   }
 
-  expectFullCaptureCoverage() {
+  expectFullCoverage() {
     const remainingRecordCount = this._recording.records.length - this._nextRecordIndex;
     if (remainingRecordCount > 0) {
       throw new Error(`Expected recording to be fully covered but last ${remainingRecordCount} records ${this._sincePosition(this._nextRecordIndex)} were not played`);

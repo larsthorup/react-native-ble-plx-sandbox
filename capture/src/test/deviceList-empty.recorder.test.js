@@ -3,9 +3,9 @@ import * as bleService from '../shared/bleService';
 import { BleRecorder } from '@larsthorup/ble-mock-recorder';
 import { BleManager } from 'react-native-ble-plx';
 
-const captureName = 'deviceList-empty';
+const recordingName = 'deviceList-empty';
 
-describe(captureName, () => {
+describe(recordingName, () => {
   let bleManager;
   let bleRecorder;
   const deviceMap = {
@@ -17,7 +17,7 @@ describe(captureName, () => {
     // console.log('Looking for speakers', expectedDeviceNames);
     bleRecorder = new BleRecorder({
       bleManager: new BleManager(),
-      captureName,
+      recordingName,
       deviceMap,
     });
     bleManager = bleRecorder.bleManagerSpy;

@@ -98,6 +98,6 @@ describe('BlePlayer', () => {
       '      "type": "event",',
       '      "event": "characteristic",',
     ]);
-    expect(() => blePlayer.expectFullCaptureCoverage()).to.throw(`Expected recording to be fully covered but last 2 records since line ${expectedLineNumber} (index 1) were not played`);
+    expect(() => blePlayer.expectFullCoverage()).to.throw(`Expected recording to be fully covered but last 2 records since line ${expectedLineNumber} (index 1) were not played`);
   });
 });

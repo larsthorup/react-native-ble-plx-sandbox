@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import * as td from 'testdouble';
-import { parseBleCaptureEvent, parseBleRecord } from './bleCaptureJsonProtocol.js';
+import { parseBleRecorderEvent, parseBleRecord } from './bleRecorderJsonProtocol.js';
 import { BleRecorder, BleManagerSpy } from './bleRecorder.js';
 
 const BleManagerFake = td.constructor(BleManagerSpy);
@@ -8,15 +8,15 @@ const BleManagerFake = td.constructor(BleManagerSpy);
 class LoggerSpy {
   constructor() {
     this.bleLog = [];
-    this.captureLog = [];
+    this.recorderEventLog = [];
     this.logger = (line) => {
       const bleRecord = parseBleRecord(line);
-      const captureEvent = parseBleCaptureEvent(line);
+      const recorderEvent = parseBleRecorderEvent(line);
       if (bleRecord) {
         this.bleLog.push(bleRecord);
       }
-      if (captureEvent) {
-        this.captureLog.push(captureEvent);
+      if (recorderEvent) {
+        this.recorderEventLog.push(recorderEvent);
       }
     };
   }
@@ -24,12 +24,12 @@ class LoggerSpy {
 
 describe('bleRecorder', () => {
   describe('minimal scenario', () => {
-    it('should record an empty capture file', () => {
+    it('should record an empty recording file', () => {
       const bleManagerFake = new BleManagerFake();
-      const { bleLog, captureLog, logger } = new LoggerSpy();
+      const { bleLog, recorderEventLog, logger } = new LoggerSpy();
       const bleRecorder = new BleRecorder({ bleManager: bleManagerFake, logger });
       bleRecorder.close();
-      expect(captureLog).to.deep.equal([
+      expect(recorderEventLog).to.deep.equal([
         { event: 'init', name: 'default', version: '1.0.0' },
         { event: 'save', name: 'default' },
       ]);
@@ -37,16 +37,16 @@ describe('bleRecorder', () => {
     });
   });
 
-  describe('captureName', () => {
-    it('should name the capture file', () => {
+  describe('recordingName', () => {
+    it('should name the recording file', () => {
       const bleManagerFake = new BleManagerFake();
-      const captureName = 'some-capture-name';
-      const { bleLog, captureLog, logger } = new LoggerSpy();
-      const bleRecorder = new BleRecorder({ bleManager: bleManagerFake, captureName, logger });
+      const recordingName = 'some-recording-name';
+      const { bleLog, recorderEventLog, logger } = new LoggerSpy();
+      const bleRecorder = new BleRecorder({ bleManager: bleManagerFake, recordingName, logger });
       bleRecorder.close();
-      expect(captureLog).to.deep.equal([
-        { event: 'init', name: 'some-capture-name', version: '1.0.0' },
-        { event: 'save', name: 'some-capture-name' },
+      expect(recorderEventLog).to.deep.equal([
+        { event: 'init', name: 'some-recording-name', version: '1.0.0' },
+        { event: 'save', name: 'some-recording-name' },
       ]);
       expect(bleLog).to.deep.equal([]);
     });
@@ -57,7 +57,7 @@ describe('bleRecorder', () => {
     const scanOptions = { allowDuplicates: true };
 
     describe('minimal settings', () => {
-      it('should record commands and events in capture file', () => {
+      it('should record commands and events in recording file', () => {
         // given a few device scans
         const bleManagerFake = new BleManagerFake();
         td.when(bleManagerFake.startDeviceScan(uuidList, scanOptions, td.matchers.isA(Function))).thenDo((u, o, listener) => {
@@ -115,7 +115,7 @@ describe('bleRecorder', () => {
     });
 
     describe('deviceMap', () => {
-      it('should filter and map device id and name in capture file', () => {
+      it('should filter and map device id and name in recording file', () => {
         // given a single device scan will happen
         const bleManagerFake = new BleManagerFake();
         td.when(bleManagerFake.startDeviceScan(uuidList, scanOptions, td.matchers.isA(Function))).thenDo((u, o, listener) => {
@@ -165,7 +165,7 @@ describe('bleRecorder', () => {
     });
 
     describe('spec', () => {
-      it('should record commands and events in capture file', () => {
+      it('should record commands and events in recording file', () => {
         // given a few device scans
         const bleManagerFake = new BleManagerFake();
         td.when(bleManagerFake.startDeviceScan(uuidList, scanOptions, td.matchers.isA(Function))).thenDo((u, o, listener) => {
@@ -209,7 +209,7 @@ describe('bleRecorder', () => {
     });
 
     describe('scan error', () => {
-      it('should record scan error in capture file', () => {
+      it('should record scan error in recording file', () => {
 
         // given a device scan error
         const bleManagerFake = new BleManagerFake();
@@ -383,7 +383,7 @@ describe('bleRecorder', () => {
     });
   });
   describe('onStateChange', () => {
-    it('should record commands and events in capture file', () => {
+    it('should record commands and events in recording file', () => {
       // given a few device scans
       const bleManagerFake = new BleManagerFake();
       td.when(bleManagerFake.onStateChange(td.matchers.isA(Function), true)).thenDo((listener) => {
@@ -535,7 +535,7 @@ describe('bleRecorder', () => {
     });
   });
   describe('onDeviceDisconnected', () => {
-    it('should record commands and events in capture file', () => {
+    it('should record commands and events in recording file', () => {
       // given a few device scans
       const bleManagerFake = new BleManagerFake();
       td.when(bleManagerFake.onDeviceDisconnected('some-device-id', td.matchers.isA(Function))).thenDo((_, listener) => {
@@ -689,7 +689,7 @@ describe('bleRecorder', () => {
     });
   });
   describe('monitorCharacteristicForDevice', () => {
-    it('should record commands and events in capture file', () => {
+    it('should record commands and events in recording file', () => {
       // given a few device scans
       const bleManagerFake = new BleManagerFake();
       td.when(bleManagerFake.monitorCharacteristicForDevice('some-device-id', 'some-service-uuid', 'some-characteristic-uuid', td.matchers.isA(Function))).thenDo((d, s, c, listener) => {

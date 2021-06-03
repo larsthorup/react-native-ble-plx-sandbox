@@ -1,10 +1,10 @@
 const bleRecordPrefix = 'BleRecord: ';
-const bleCapturePrefix = 'BleCapture: ';
+const bleRecorderPrefix = 'BleRecorder: ';
 
-export const parseBleCaptureEvent = (line) => {
-  if (line.startsWith(bleCapturePrefix)) {
-    const bleCaptureEvent = JSON.parse(line.substr(bleCapturePrefix.length));
-    return bleCaptureEvent;
+export const parseBleRecorderEvent = (line) => {
+  if (line.startsWith(bleRecorderPrefix)) {
+    const bleRecorderEvent = JSON.parse(line.substr(bleRecorderPrefix.length));
+    return bleRecorderEvent;
   } else {
     return undefined;
   }
@@ -19,8 +19,8 @@ export const parseBleRecord = (line) => {
   }
 };
 
-export const stringifyBleCaptureEvent = (captureEvent) => {
-  return `${bleCapturePrefix}${JSON.stringify(captureEvent)}`;
+export const stringifyBleRecorderEvent = (recorderEvent) => {
+  return `${bleRecorderPrefix}${JSON.stringify(recorderEvent)}`;
 };
 
 export const stringifyBleRecord = (record) => {

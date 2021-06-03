@@ -13,7 +13,7 @@ describe('DeviceList', () => {
   describe('auto-mocking', () => {
     // for (const _ of '*'.repeat(1000))
     it('should load and show device info', async () => {
-      const spec = JSON.parse(fs.readFileSync('../capture/artifact/deviceList.capture.json'));
+      const spec = JSON.parse(fs.readFileSync('../capture/artifact/deviceList.recording.json'));
       const { blePlayer } = getBleManager();
       blePlayer.mockWith(spec);
 
@@ -51,7 +51,7 @@ describe('DeviceList', () => {
       expect(queryByA11yLabel('"The Speaker" battery level')).toBeFalsy();
 
       // finally
-      blePlayer.expectFullCaptureCoverage();
+      blePlayer.expectFullCoverage();
     });
   });
 
@@ -103,7 +103,7 @@ describe('DeviceList', () => {
       expect(queryAllByA11yLabel('BLE device')).toEqual([]);
 
       // finally
-      blePlayer.expectFullCaptureCoverage();
+      blePlayer.expectFullCoverage();
     });
 
     it('should display list of BLE devices', async () => {
@@ -154,7 +154,7 @@ describe('DeviceList', () => {
       ]);
 
       // finally
-      blePlayer.expectFullCaptureCoverage();
+      blePlayer.expectFullCoverage();
     });
 
     it('should display list of BLE devices as they appear', async () => {
@@ -216,7 +216,7 @@ describe('DeviceList', () => {
       ]);
 
       // finally
-      blePlayer.expectFullCaptureCoverage();
+      blePlayer.expectFullCoverage();
     });
   });
 });

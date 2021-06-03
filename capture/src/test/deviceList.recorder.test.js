@@ -8,9 +8,9 @@ import { characteristic, nameFromUuid, service } from '../shared/bleConstants';
 import { base64FromUint8, uint8FromBase64 } from '../shared/base64';
 import { BleRecorder } from '@larsthorup/ble-mock-recorder';
 
-const captureName = 'deviceList';
+const recordingName = 'deviceList';
 
-describe(captureName, () => {
+describe(recordingName, () => {
   let bleManager;
   let bleRecorder;
   let device;
@@ -32,7 +32,7 @@ describe(captureName, () => {
     // console.log('Looking for speakers', deviceMap.expected);
     bleRecorder = new BleRecorder({
       bleManager: new BleManager(),
-      captureName,
+      recordingName,
       deviceMap,
       nameFromUuid,
     });

@@ -38,7 +38,7 @@ TBD
 npm run android:log
 ```
 
-## Create capture app project
+## Create app recorder project
 
 - add permissions in android/app/src/main/AndroidManifest.xml
 - configure package name in .env

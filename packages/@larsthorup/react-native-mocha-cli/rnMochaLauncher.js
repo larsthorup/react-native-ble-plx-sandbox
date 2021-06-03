@@ -3,7 +3,7 @@ import readline from 'readline';
 
 import chalk from 'chalk';
 import { parseTestRunnerEvent } from '@larsthorup/react-native-mocha';
-import { parseBleCaptureEvent, parseBleRecord } from '@larsthorup/ble-mock-recorder';
+import { parseBleRecorderEvent, parseBleRecord } from '@larsthorup/ble-mock-recorder';
 
 const lineTransformer = (input) => readline.createInterface({ input });
 
@@ -65,7 +65,7 @@ export const launch = async ({ appName, env, exec, expectedFailCount, log, spawn
     lineTransformer(logcat.stdout).on('line', (line) => {
       const runnerEvent = parseTestRunnerEvent(line);
       const bleRecord = parseBleRecord(line);
-      const bleCaptureEvent = parseBleCaptureEvent(line);
+      const bleRecorderEvent = parseBleRecorderEvent(line);
       if (runnerEvent) {
         const { duration, event, message, name } = runnerEvent;
         switch (event) {
@@ -99,8 +99,8 @@ export const launch = async ({ appName, env, exec, expectedFailCount, log, spawn
         }
       } else if (bleRecord) {
         bleRecording.records.push(bleRecord);
-      } else if (bleCaptureEvent) {
-        const { event, name, version } = bleCaptureEvent;
+      } else if (bleRecorderEvent) {
+        const { event, name, version } = bleRecorderEvent;
         switch (event) {
           case 'init':
             bleRecording = {
@@ -110,9 +110,9 @@ export const launch = async ({ appName, env, exec, expectedFailCount, log, spawn
             break;
           case 'save':
             fs.mkdirSync('./artifact', { recursive: true });
-            const capturePath = `./artifact/${name}.capture.json`;
-            fs.writeFileSync(capturePath, JSON.stringify(bleRecording, null, 2));
-            log(`(BLE capture file saved in ${capturePath}: ${bleRecording.records.length} records)`);
+            const recordingPath = `./artifact/${name}.recording.json`;
+            fs.writeFileSync(recordingPath, JSON.stringify(bleRecording, null, 2));
+            log(`(BLE recording file saved in ${recordingPath}: ${bleRecording.records.length} records)`);
             break;
         }
       } else if (logCatIgnorePrefixList.some((prefix) => line.startsWith(prefix))) {

@@ -1,6 +1,6 @@
 import * as util from 'util';
 import { bufferFromBase64, isPrintableFromBase64, printableFromBase64 } from './base64.js';
-import { stringifyBleCaptureEvent, stringifyBleRecord } from './bleCaptureJsonProtocol.js';
+import { stringifyBleRecorderEvent, stringifyBleRecord } from './bleRecorderJsonProtocol.js';
 
 const recordingFileFormatVersion = '1.0.0';
 
@@ -77,7 +77,7 @@ export class BleManagerSpy {
               this._recorder._log(`(ignoring device with id ${device.id} named ${device.name}. ManufacturerData: ${device.manufacturerData})`);
               this._recorder._reported.push(device.id);
             }
-            // Note: exclude unexpected scan responses from capture file for now as they are usually quite noisy
+            // Note: exclude unexpected scan responses from recording file for now as they are usually quite noisy
             // TODO: use filter mechanism for this
             const { id, name } = device;
             this._recorder._exclude({
@@ -328,9 +328,9 @@ export class BleManagerSpy {
 }
 
 export class BleRecorder {
-  constructor({ bleManager, captureName, deviceMap, logger, nameFromUuid }) {
+  constructor({ bleManager, recordingName, deviceMap, logger, nameFromUuid }) {
     this.bleManagerSpy = new BleManagerSpy(this, bleManager);
-    this.captureName = captureName || 'default';
+    this.recordingName = recordingName || 'default';
     this.deviceMap = deviceMap;
     this.nameFromUuid = nameFromUuid || {};
     this.recordRssi = undefined;
@@ -340,15 +340,15 @@ export class BleRecorder {
       ['deviceScan']: { seen: 0 },
     };
     this._recordValueQueue = [];
-    this._capture({ event: 'init', name: this.captureName, version: recordingFileFormatVersion });
+    this._logRecorderEvent({ event: 'init', name: this.recordingName, version: recordingFileFormatVersion });
   }
 
   _log(line) {
     this._logger(line);
   }
 
-  _capture(captureEvent) {
-    this._log(stringifyBleCaptureEvent(captureEvent));
+  _logRecorderEvent(recorderEvent) {
+    this._log(stringifyBleRecorderEvent(recorderEvent));
   }
 
   _record(record) {
@@ -418,7 +418,7 @@ export class BleRecorder {
 
   close() {
     this.bleManagerSpy.destroy();
-    this._capture({ event: 'save', name: this.captureName });
+    this._logRecorderEvent({ event: 'save', name: this.recordingName });
   }
 
   isExpected(device) {

@@ -12,7 +12,7 @@ const expectedLocalName = 'BeoPlay A1'; // TODO: change to name of your own devi
 
 describe('App', () => {
   it('should show device names', async () => {
-    const recording = JSON.parse(fs.readFileSync('../BleAppRecorder/artifact/default.capture.json'));
+    const recording = JSON.parse(fs.readFileSync('../BleAppRecorder/artifact/default.recording.json'));
     const { blePlayer } = getBleManager();
     blePlayer.mockWith(recording);
 

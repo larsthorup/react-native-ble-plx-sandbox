@@ -1,5 +1,5 @@
 {
-  "name": "react-native-ble-plx-sandbox-capture",
+  "name": "react-native-ble-plx-sandbox-recorder",
   "version": "0.0.1",
   "private": true,
   "scripts": {
@@ -12,12 +12,12 @@
     "android:log:clear": "adb logcat -c",
     "android:log": "adb logcat -d -v raw -s ReactNativeJS:V",
     "android:stop": "dotenv -- bash -c 'adb shell pm clear $PACKAGE_NAME' || echo Failed to clear app - continuing",
-    "capture": "node node_modules/@larsthorup/react-native-mocha-cli/rnMochaCli 1",
+    "record": "node node_modules/@larsthorup/react-native-mocha-cli/rnMochaCli 1",
     "ci": "npm run eslint",
     "eslint": "eslint . --fix --max-warnings 0 --ignore-path .gitignore",
     "ios": "react-native run-ios",
     "start": "react-native start",
-    "test": "npm run ci && npm run android:build && npm run android:stop && npm run android:install && npm run capture",
+    "test": "npm run ci && npm run android:build && npm run android:stop && npm run android:install && npm run record",
     "unpack": "rm -rf node_modules/@larsthorup && npm install --no-save ../packages/@larsthorup/ble-mock-recorder/larsthorup-ble-mock-recorder-local.tgz ../packages/@larsthorup/react-native-mocha/larsthorup-react-native-mocha-local.tgz ../packages/@larsthorup/react-native-mocha-cli/larsthorup-react-native-mocha-cli-local.tgz"
   },
   "dependencies": {

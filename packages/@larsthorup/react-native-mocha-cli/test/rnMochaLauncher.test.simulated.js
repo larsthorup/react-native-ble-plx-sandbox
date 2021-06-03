@@ -24,10 +24,10 @@ describe('calc', () => {
 
 describe('state', () => {
   it('should record command with request and response', async () => {
-    const captureName = 'rnMochaLauncher.test.simulated';
+    const recordingName = 'rnMochaLauncher.test.simulated';
     const bleManagerFake = new BleManagerFake();
     const logger = (line) => console.log(line);
-    const bleRecorder = new BleRecorder({ bleManager: bleManagerFake, captureName, logger });
+    const bleRecorder = new BleRecorder({ bleManager: bleManagerFake, recordingName, logger });
     td.when(bleManagerFake.state()).thenResolve('some-state');
     const bleManager = bleRecorder.bleManagerSpy;
     const state = await bleManager.state();
