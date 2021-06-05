@@ -3,12 +3,24 @@ import * as td from 'testdouble';
 import { parseBleRecorderEvent, parseBleRecord } from './bleRecorderJsonProtocol.js';
 import { BleRecorder, BleManagerSpy } from './bleRecorder.js';
 
+/** @typedef { import('react-native-ble-plx').BleManager } BleManager */
+/** @typedef { import('react-native-ble-plx').Characteristic } Characteristic */
+/** @typedef { import('react-native-ble-plx').Device } Device */
+/** @typedef { import('react-native-ble-plx').Service } Service */
+/** @typedef { import('react-native-ble-plx').State } State */
+
+/** @typedef { import('./bleRecorder.js').BleRecord } BleRecord */
+/** @typedef { import('./bleRecorder.js').RecorderEvent } RecorderEvent */
+
 const BleManagerFake = td.constructor(BleManagerSpy);
 
 class LoggerSpy {
   constructor() {
+    /** @type { BleRecord[] } */
     this.bleLog = [];
+    /** @type { RecorderEvent[] } */
     this.recorderEventLog = [];
+    /** @type { (line: string) => void } */
     this.logger = (line) => {
       const bleRecord = parseBleRecord(line);
       const recorderEvent = parseBleRecorderEvent(line);
@@ -23,9 +35,15 @@ class LoggerSpy {
 }
 
 describe('bleRecorder', () => {
+  /** @type { BleManager } */
+  let bleManagerFake;
+
+  beforeEach(() => {
+    bleManagerFake = /** @type { BleManager } */ (/** @type { unknown } */(new BleManagerFake()));
+  });
+
   describe('minimal scenario', () => {
     it('should record an empty recording file', () => {
-      const bleManagerFake = new BleManagerFake();
       const { bleLog, recorderEventLog, logger } = new LoggerSpy();
       const bleRecorder = new BleRecorder({ bleManager: bleManagerFake, logger });
       bleRecorder.close();
@@ -39,7 +57,6 @@ describe('bleRecorder', () => {
 
   describe('recordingName', () => {
     it('should name the recording file', () => {
-      const bleManagerFake = new BleManagerFake();
       const recordingName = 'some-recording-name';
       const { bleLog, recorderEventLog, logger } = new LoggerSpy();
       const bleRecorder = new BleRecorder({ bleManager: bleManagerFake, recordingName, logger });
@@ -59,8 +76,7 @@ describe('bleRecorder', () => {
     describe('minimal settings', () => {
       it('should record commands and events in recording file', () => {
         // given a few device scans
-        const bleManagerFake = new BleManagerFake();
-        td.when(bleManagerFake.startDeviceScan(uuidList, scanOptions, td.matchers.isA(Function))).thenDo((u, o, listener) => {
+        td.when(bleManagerFake.startDeviceScan(uuidList, scanOptions, td.matchers.isA(Function))).thenDo(/** @type { () => void } */(u, o, listener) => {
           listener(null, { id: 'some-device-id', name: 'some-device-name' });
           listener(null, { id: 'some-other-device-id', name: 'some-other-device-name' });
           listener(null, { id: 'some-device-id', name: 'some-device-name' });
@@ -90,21 +106,27 @@ describe('bleRecorder', () => {
             event: 'deviceScan',
             args: {
               device: { id: 'some-device-id', name: 'some-device-name' },
+              error: null,
             },
+            autoPlay: false
           },
           {
             type: 'event',
             event: 'deviceScan',
             args: {
               device: { id: 'some-other-device-id', name: 'some-other-device-name' },
+              error: null,
             },
+            autoPlay: false,
           },
           {
             type: 'event',
             event: 'deviceScan',
             args: {
               device: { id: 'some-device-id', name: 'some-device-name' },
+              error: null,
             },
+            autoPlay: false,
           },
           {
             type: 'label',
@@ -117,8 +139,7 @@ describe('bleRecorder', () => {
     describe('deviceMap', () => {
       it('should filter and map device id and name in recording file', () => {
         // given a single device scan will happen
-        const bleManagerFake = new BleManagerFake();
-        td.when(bleManagerFake.startDeviceScan(uuidList, scanOptions, td.matchers.isA(Function))).thenDo((u, o, listener) => {
+        td.when(bleManagerFake.startDeviceScan(uuidList, scanOptions, td.matchers.isA(Function))).thenDo(/** @type { () => void } */(u, o, listener) => {
           listener(null, { id: 'some-device-id', name: 'some-device-name' });
           listener(null, { id: 'some-ignored-device-id', name: 'some-ignored-device-name' });
         });
@@ -157,8 +178,10 @@ describe('bleRecorder', () => {
             type: 'event',
             event: 'deviceScan',
             args: {
-              device: { id: 'recorded-device-id', name: 'recorded-device-name' },
+              device: { id: 'recorded-device-id', name: 'recorded-device-name', localName: null, manufacturerData: null, rssi: null },
+              error: null,
             },
+            autoPlay: false,
           },
         ]);
       });
@@ -167,8 +190,7 @@ describe('bleRecorder', () => {
     describe('spec', () => {
       it('should record commands and events in recording file', () => {
         // given a few device scans
-        const bleManagerFake = new BleManagerFake();
-        td.when(bleManagerFake.startDeviceScan(uuidList, scanOptions, td.matchers.isA(Function))).thenDo((u, o, listener) => {
+        td.when(bleManagerFake.startDeviceScan(uuidList, scanOptions, td.matchers.isA(Function))).thenDo(/** @type { () => void } */(u, o, listener) => {
           listener(null, { id: 'some-device-id', name: 'some-device-name' });
           listener(null, { id: 'some-device-id', name: 'some-device-name' });
         });
@@ -199,7 +221,9 @@ describe('bleRecorder', () => {
             event: 'deviceScan',
             args: {
               device: { id: 'some-device-id', name: 'some-device-name' },
+              error: null,
             },
+            autoPlay: false,
             spec: {
               keep: 1,
             },
@@ -212,8 +236,7 @@ describe('bleRecorder', () => {
       it('should record scan error in recording file', () => {
 
         // given a device scan error
-        const bleManagerFake = new BleManagerFake();
-        td.when(bleManagerFake.startDeviceScan(uuidList, scanOptions, td.matchers.isA(Function))).thenDo((u, o, listener) => {
+        td.when(bleManagerFake.startDeviceScan(uuidList, scanOptions, td.matchers.isA(Function))).thenDo(/** @type { () => void } */(u, o, listener) => {
           listener({ message: 'some error message' });
         });
 
@@ -239,8 +262,10 @@ describe('bleRecorder', () => {
             type: 'event',
             event: 'deviceScan',
             args: {
+              device: null,
               error: { message: 'some error message' },
             },
+            autoPlay: false,
           },
         ]);
       });
@@ -250,7 +275,6 @@ describe('bleRecorder', () => {
   describe('readCharacteristicForDevice', () => {
     describe('minimal scenario', () => {
       it('should record literal uuids and values', async () => {
-        const bleManagerFake = new BleManagerFake();
         td.when(bleManagerFake.readCharacteristicForDevice('some-device-id', 'some-service-uuid', 'some-characteristic-uuid')).thenResolve({ value: 'Z2Rj' });
         const { bleLog, logger } = new LoggerSpy();
         const bleRecorder = new BleRecorder({ bleManager: bleManagerFake, logger });
@@ -272,6 +296,8 @@ describe('bleRecorder', () => {
               serviceUUID: 'some-service-uuid',
             },
             response: {
+              serviceUUID: 'some-service-uuid',
+              uuid: 'some-characteristic-uuid',
               value: 'Z2Rj',
             },
             debug: {
@@ -284,7 +310,6 @@ describe('bleRecorder', () => {
 
     describe('queueRecordValue', () => {
       it('should record specified value', async () => {
-        const bleManagerFake = new BleManagerFake();
         td.when(bleManagerFake.readCharacteristicForDevice('some-device-id', 'some-service-uuid', 'some-characteristic-uuid')).thenResolve({ value: 'Kg==' });
         const { bleLog, logger } = new LoggerSpy();
         const bleRecorder = new BleRecorder({ bleManager: bleManagerFake, logger });
@@ -307,6 +332,8 @@ describe('bleRecorder', () => {
               serviceUUID: 'some-service-uuid',
             },
             response: {
+              serviceUUID: 'some-service-uuid',
+              uuid: 'some-characteristic-uuid',
               value: 'AA==',
             },
             debug: {
@@ -319,7 +346,6 @@ describe('bleRecorder', () => {
 
     describe('nameFromUuid', () => {
       it('should include names for uuids', async () => {
-        const bleManagerFake = new BleManagerFake();
         td.when(bleManagerFake.readCharacteristicForDevice('some-device-id', 'some-service-uuid', 'some-characteristic-uuid')).thenResolve({ value: 'Kg==' });
         const { bleLog, logger } = new LoggerSpy();
 
@@ -329,7 +355,7 @@ describe('bleRecorder', () => {
           'some-characteristic-uuid': 'some-characteristic-name',
         };
 
-        const bleRecorder = new BleRecorder({ bleManager: bleManagerFake, logger, nameFromUuid });
+        const bleRecorder = new BleRecorder({ bleManager: bleManagerFake, logger, nameFromUUID: nameFromUuid });
         const bleManager = bleRecorder.bleManagerSpy;
 
         // when
@@ -349,6 +375,8 @@ describe('bleRecorder', () => {
               serviceUUID: 'some-service-uuid',
             },
             response: {
+              serviceUUID: 'some-service-uuid',
+              uuid: 'some-characteristic-uuid',
               value: 'AA==',
             },
             debug: {
@@ -364,20 +392,19 @@ describe('bleRecorder', () => {
 
   describe('state', () => {
     it('should record command with request and response', async () => {
-      const bleManagerFake = new BleManagerFake();
       const { bleLog, logger } = new LoggerSpy();
       const bleRecorder = new BleRecorder({ bleManager: bleManagerFake, logger });
-      td.when(bleManagerFake.state()).thenResolve('some-state');
+      td.when(bleManagerFake.state()).thenResolve(/** @type { State } */('PoweredOn'));
       const bleManager = bleRecorder.bleManagerSpy;
       const state = await bleManager.state();
-      expect(state).to.equal('some-state');
+      expect(state).to.equal('PoweredOn');
       bleRecorder.close();
       expect(bleLog).to.deep.equal([
         {
           type: 'command',
           command: 'state',
           request: {},
-          response: 'some-state',
+          response: 'PoweredOn',
         },
       ]);
     });
@@ -385,8 +412,7 @@ describe('bleRecorder', () => {
   describe('onStateChange', () => {
     it('should record commands and events in recording file', () => {
       // given a few device scans
-      const bleManagerFake = new BleManagerFake();
-      td.when(bleManagerFake.onStateChange(td.matchers.isA(Function), true)).thenDo((listener) => {
+      td.when(bleManagerFake.onStateChange(td.matchers.isA(Function), true)).thenDo(/** @type { () => void } */(listener) => {
         listener('some-state');
       });
 
@@ -413,13 +439,13 @@ describe('bleRecorder', () => {
           args: {
             powerState: 'some-state',
           },
+          autoPlay: false,
         },
       ]);
     });
   });
   describe('stopDeviceScan', () => {
     it('should record command', async () => {
-      const bleManagerFake = new BleManagerFake();
       const { bleLog, logger } = new LoggerSpy();
       const bleRecorder = new BleRecorder({ bleManager: bleManagerFake, logger });
       td.when(bleManagerFake.stopDeviceScan()).thenResolve();
@@ -430,13 +456,13 @@ describe('bleRecorder', () => {
         {
           type: 'command',
           command: 'stopDeviceScan',
+          request: {},
         },
       ]);
     });
   });
   describe('isDeviceConnected', () => {
     it('should record command with request and response', async () => {
-      const bleManagerFake = new BleManagerFake();
       const { bleLog, logger } = new LoggerSpy();
       const bleRecorder = new BleRecorder({ bleManager: bleManagerFake, logger });
       td.when(bleManagerFake.isDeviceConnected('some-device-id')).thenResolve(true);
@@ -458,7 +484,6 @@ describe('bleRecorder', () => {
   });
   describe('readRSSIForDevice', () => {
     it('should record command with request and response', async () => {
-      const bleManagerFake = new BleManagerFake();
       const { bleLog, logger } = new LoggerSpy();
       const bleRecorder = new BleRecorder({ bleManager: bleManagerFake, logger });
       td.when(bleManagerFake.readRSSIForDevice('some-device-id')).thenResolve({ rssi: -42 });
@@ -475,6 +500,9 @@ describe('bleRecorder', () => {
           },
           response: {
             id: 'some-device-id',
+            localName: null,
+            manufacturerData: null,
+            name: null,
             rssi: -42,
           },
         },
@@ -483,7 +511,6 @@ describe('bleRecorder', () => {
   });
   describe('connectToDevice', () => {
     it('should record command with request and response', async () => {
-      const bleManagerFake = new BleManagerFake();
       const { bleLog, logger } = new LoggerSpy();
       const bleRecorder = new BleRecorder({ bleManager: bleManagerFake, logger });
       td.when(bleManagerFake.connectToDevice('some-device-id', { autoConnect: false })).thenResolve({
@@ -505,6 +532,10 @@ describe('bleRecorder', () => {
           },
           response: {
             id: 'some-device-id',
+            localName: null,
+            manufacturerData: null,
+            name: null,
+            rssi: null,
           },
         },
       ]);
@@ -512,10 +543,9 @@ describe('bleRecorder', () => {
   });
   describe('connectedDevices', () => {
     it('should record command with request and response', async () => {
-      const bleManagerFake = new BleManagerFake();
       const { bleLog, logger } = new LoggerSpy();
       const bleRecorder = new BleRecorder({ bleManager: bleManagerFake, logger });
-      td.when(bleManagerFake.connectedDevices(['some-uuid'])).thenResolve([{ id: 'some-device-id' }]);
+      td.when(bleManagerFake.connectedDevices(['some-uuid'])).thenResolve([/** @type { Device } */({ id: 'some-device-id' })]);
       const bleManager = bleRecorder.bleManagerSpy;
       const deviceList = await bleManager.connectedDevices(['some-uuid']);
       expect(deviceList).to.deep.equal([{ id: 'some-device-id' }]);
@@ -528,7 +558,13 @@ describe('bleRecorder', () => {
             serviceUUIDs: ['some-uuid'],
           },
           response: [
-            { id: 'some-device-id' },
+            {
+              id: 'some-device-id',
+              localName: null,
+              manufacturerData: null,
+              name: null,
+              rssi: null,
+            },
           ],
         },
       ]);
@@ -537,8 +573,7 @@ describe('bleRecorder', () => {
   describe('onDeviceDisconnected', () => {
     it('should record commands and events in recording file', () => {
       // given a few device scans
-      const bleManagerFake = new BleManagerFake();
-      td.when(bleManagerFake.onDeviceDisconnected('some-device-id', td.matchers.isA(Function))).thenDo((_, listener) => {
+      td.when(bleManagerFake.onDeviceDisconnected('some-device-id', td.matchers.isA(Function))).thenDo(/** @type { () => void } */(_, listener) => {
         listener(null, { id: 'some-device-id' });
       });
 
@@ -563,15 +598,22 @@ describe('bleRecorder', () => {
           type: 'event',
           event: 'deviceDisconnected',
           args: {
-            device: { id: 'some-device-id' },
+            device: {
+              id: 'some-device-id',
+              localName: null,
+              manufacturerData: null,
+              name: null,
+              rssi: null,
+            },
+            error: null,
           },
+          autoPlay: false,
         },
       ]);
     });
   });
   describe('requestMTUForDevice', () => {
     it('should record command with request and response', async () => {
-      const bleManagerFake = new BleManagerFake();
       const { bleLog, logger } = new LoggerSpy();
       const bleRecorder = new BleRecorder({ bleManager: bleManagerFake, logger });
       td.when(bleManagerFake.requestMTUForDevice('some-device-id', 96)).thenResolve({ id: 'some-device-id', mtu: 96 });
@@ -590,6 +632,10 @@ describe('bleRecorder', () => {
           response: {
             id: 'some-device-id',
             mtu: 96,
+            localName: null,
+            manufacturerData: null,
+            name: null,
+            rssi: null,
           },
         },
       ]);
@@ -597,10 +643,9 @@ describe('bleRecorder', () => {
   });
   describe('discoverAllServicesAndCharacteristicsForDevice', () => {
     it('should record command with request and response', async () => {
-      const bleManagerFake = new BleManagerFake();
       const { bleLog, logger } = new LoggerSpy();
       const bleRecorder = new BleRecorder({ bleManager: bleManagerFake, logger });
-      td.when(bleManagerFake.discoverAllServicesAndCharacteristicsForDevice('some-device-id')).thenResolve();
+      td.when(bleManagerFake.discoverAllServicesAndCharacteristicsForDevice('some-device-id')).thenResolve(/** @type { Device } */{ id: 'some-device-id' });
       const bleManager = bleRecorder.bleManagerSpy;
       await bleManager.discoverAllServicesAndCharacteristicsForDevice('some-device-id');
       bleRecorder.close();
@@ -617,10 +662,9 @@ describe('bleRecorder', () => {
   });
   describe('devices', () => {
     it('should record command with request and response', async () => {
-      const bleManagerFake = new BleManagerFake();
       const { bleLog, logger } = new LoggerSpy();
       const bleRecorder = new BleRecorder({ bleManager: bleManagerFake, logger });
-      td.when(bleManagerFake.devices(['some-device-id'])).thenResolve([{ id: 'some-device-id' }]);
+      td.when(bleManagerFake.devices(['some-device-id'])).thenResolve([/** @type { Device } */({ id: 'some-device-id' })]);
       const bleManager = bleRecorder.bleManagerSpy;
       const deviceList = await bleManager.devices(['some-device-id']);
       expect(deviceList).to.deep.equal([{ id: 'some-device-id' }]);
@@ -633,7 +677,13 @@ describe('bleRecorder', () => {
             deviceIdentifiers: ['some-device-id'],
           },
           response: [
-            { id: 'some-device-id' },
+            {
+              id: 'some-device-id',
+              localName: null,
+              manufacturerData: null,
+              name: null,
+              rssi: null,
+            },
           ],
         },
       ]);
@@ -641,10 +691,9 @@ describe('bleRecorder', () => {
   });
   describe('servicesForDevice', () => {
     it('should record command with request and response', async () => {
-      const bleManagerFake = new BleManagerFake();
       const { bleLog, logger } = new LoggerSpy();
       const bleRecorder = new BleRecorder({ bleManager: bleManagerFake, logger });
-      td.when(bleManagerFake.servicesForDevice('some-device-id')).thenResolve([{ uuid: 'some-service-uuid' }]);
+      td.when(bleManagerFake.servicesForDevice('some-device-id')).thenResolve([/** @type { Service } */({ uuid: 'some-service-uuid' })]);
       const bleManager = bleRecorder.bleManagerSpy;
       const serviceList = await bleManager.servicesForDevice('some-device-id');
       expect(serviceList).to.deep.equal([{ uuid: 'some-service-uuid' }]);
@@ -665,10 +714,9 @@ describe('bleRecorder', () => {
   });
   describe('characteristicsForDevice', () => {
     it('should record command with request and response', async () => {
-      const bleManagerFake = new BleManagerFake();
       const { bleLog, logger } = new LoggerSpy();
       const bleRecorder = new BleRecorder({ bleManager: bleManagerFake, logger });
-      td.when(bleManagerFake.characteristicsForDevice('some-device-id', 'some-service-uuid')).thenResolve([{ uuid: 'some-characteristic-uuid' }]);
+      td.when(bleManagerFake.characteristicsForDevice('some-device-id', 'some-service-uuid')).thenResolve([/** @type { Characteristic } */({ uuid: 'some-characteristic-uuid' })]);
       const bleManager = bleRecorder.bleManagerSpy;
       const characteristicList = await bleManager.characteristicsForDevice('some-device-id', 'some-service-uuid');
       expect(characteristicList).to.deep.equal([{ uuid: 'some-characteristic-uuid' }]);
@@ -682,7 +730,11 @@ describe('bleRecorder', () => {
             serviceUUID: 'some-service-uuid',
           },
           response: [
-            { uuid: 'some-characteristic-uuid' },
+            {
+              serviceUUID: 'some-service-uuid',
+              uuid: 'some-characteristic-uuid',
+              value: null,
+            },
           ],
         },
       ]);
@@ -691,8 +743,7 @@ describe('bleRecorder', () => {
   describe('monitorCharacteristicForDevice', () => {
     it('should record commands and events in recording file', () => {
       // given a few device scans
-      const bleManagerFake = new BleManagerFake();
-      td.when(bleManagerFake.monitorCharacteristicForDevice('some-device-id', 'some-service-uuid', 'some-characteristic-uuid', td.matchers.isA(Function))).thenDo((d, s, c, listener) => {
+      td.when(bleManagerFake.monitorCharacteristicForDevice('some-device-id', 'some-service-uuid', 'some-characteristic-uuid', td.matchers.isA(Function))).thenDo(/** @type { () => void } */(d, s, c, listener) => {
         listener(null, { uuid: 'some-characteristic-uuid', value: 'Kg==' });
       });
 
@@ -724,6 +775,7 @@ describe('bleRecorder', () => {
               uuid: 'some-characteristic-uuid',
               value: 'Kg==',
             },
+            error: null,
           },
           autoPlay: true,
           debug: {
@@ -735,8 +787,7 @@ describe('bleRecorder', () => {
   });
   describe('writeCharacteristicWithResponseForDevice', () => {
     it('should record literal uuids and values', async () => {
-      const bleManagerFake = new BleManagerFake();
-      td.when(bleManagerFake.writeCharacteristicWithResponseForDevice('some-device-id', 'some-service-uuid', 'some-characteristic-uuid', 'Z2Rj')).thenResolve();
+      td.when(bleManagerFake.writeCharacteristicWithResponseForDevice('some-device-id', 'some-service-uuid', 'some-characteristic-uuid', 'Z2Rj')).thenResolve(/** @type { Characteristic} */{});
       const { bleLog, logger } = new LoggerSpy();
       const bleRecorder = new BleRecorder({ bleManager: bleManagerFake, logger });
       const bleManager = bleRecorder.bleManagerSpy;
@@ -755,6 +806,11 @@ describe('bleRecorder', () => {
             id: 'some-device-id',
             serviceUUID: 'some-service-uuid',
             value: 'Z2Rj',
+          },
+          response: {
+            uuid: 'some-characteristic-uuid',
+            serviceUUID: 'some-service-uuid',
+            value: null,
           },
           debug: {
             value: '<Buffer 67 64 63> \'gdc\'',

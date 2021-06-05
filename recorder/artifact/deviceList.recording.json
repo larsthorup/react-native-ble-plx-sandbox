@@ -12,7 +12,8 @@
       "event": "stateChange",
       "args": {
         "powerState": "PoweredOn"
-      }
+      },
+      "autoPlay": false
     },
     {
       "type": "command",
@@ -28,13 +29,17 @@
       "args": {
         "device": {
           "id": "12-34-56-78-9A-BC",
-          "manufacturerData": "EAQ=",
-          "name": "The Speaker"
-        }
+          "localName": null,
+          "manufacturerData": null,
+          "name": "The Speaker",
+          "rssi": null
+        },
+        "error": null
       },
       "spec": {
         "keep": 1
-      }
+      },
+      "autoPlay": false
     },
     {
       "type": "label",
@@ -47,7 +52,11 @@
         "id": "12-34-56-78-9A-BC"
       },
       "response": {
-        "id": "12-34-56-78-9A-BC"
+        "id": "12-34-56-78-9A-BC",
+        "localName": null,
+        "manufacturerData": null,
+        "name": "The Speaker",
+        "rssi": null
       }
     },
     {
@@ -91,16 +100,16 @@
       "type": "command",
       "command": "readCharacteristicForDevice",
       "request": {
+        "characteristicUUID": "00002a19-0000-1000-8000-00805f9b34fb",
         "id": "12-34-56-78-9A-BC",
-        "serviceUUID": "0000180f-0000-1000-8000-00805f9b34fb",
-        "characteristicUUID": "00002a19-0000-1000-8000-00805f9b34fb"
+        "serviceUUID": "0000180f-0000-1000-8000-00805f9b34fb"
       },
       "response": {
+        "serviceUUID": "0000180f-0000-1000-8000-00805f9b34fb",
+        "uuid": "00002a19-0000-1000-8000-00805f9b34fb",
         "value": "Kg=="
       },
       "debug": {
-        "serviceUUID": "Battery Service",
-        "characteristicUUID": "Battery Level",
         "value": "<Buffer 2a> '*'"
       }
     },
@@ -112,6 +121,9 @@
       },
       "response": {
         "id": "12-34-56-78-9A-BC",
+        "localName": null,
+        "manufacturerData": null,
+        "name": "The Speaker",
         "rssi": -42
       }
     }

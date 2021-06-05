@@ -1,8 +1,11 @@
 import { expect } from 'chai';
 
 import { BleManagerMock } from './blePlayer.js';
+import { recordingFileFormatVersion } from './recording.js';
 
-const version = '1.0.0';
+/** @typedef { import('./recording.js').Recording } Recording */
+
+const version = recordingFileFormatVersion;
 
 describe(BleManagerMock.name, () => {
   it(BleManagerMock.prototype.monitorCharacteristicForDevice.name, async () => {
@@ -18,6 +21,7 @@ describe(BleManagerMock.name, () => {
             serviceUUID: 'some-service-uuid',
             characteristicUUID: 'some-characteristic-uuid',
           },
+          response: undefined,
         },
         {
           type: 'event',
@@ -28,7 +32,9 @@ describe(BleManagerMock.name, () => {
               uuid: 'some-characteristic-uuid',
               value: 'some-value',
             },
+            error: null,
           },
+          autoPlay: true,
         },
         {
           type: 'label',
@@ -60,6 +66,7 @@ describe('BlePlayer', () => {
   it('should report error by line number', async () => {
     const bleManager = new BleManagerMock();
     const { blePlayer } = bleManager;
+    /** @type Recording */
     const recording = {
       records: [
         {
@@ -70,6 +77,7 @@ describe('BlePlayer', () => {
             serviceUUID: 'some-service-uuid',
             characteristicUUID: 'some-characteristic-uuid',
           },
+          response: undefined,
         },
         {
           type: 'event',
@@ -80,7 +88,9 @@ describe('BlePlayer', () => {
               uuid: 'some-characteristic-uuid',
               value: 'some-value',
             },
+            error: null,
           },
+          autoPlay: false,
         },
         {
           type: 'label',

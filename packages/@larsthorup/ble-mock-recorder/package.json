@@ -8,7 +8,8 @@
     "eslint": "eslint . --fix --max-warnings 0 --ignore-path .gitignore",
     "mocha": "mocha",
     "pack": "rm -rf *.tgz && npm pack && mv *.tgz larsthorup-ble-mock-recorder-local.tgz",
-    "test": "npm run eslint && npm run c8"
+    "test": "npm run c8 && npm run tsc && npm run eslint",
+    "tsc": "tsc"
   },
   "dependencies": {
     "buffer": "^6.0.3",
@@ -16,10 +17,15 @@
     "util": "^0.12.3"
   },
   "devDependencies": {
+    "@types/chai": "^4.2.18",
+    "@types/deep-equal": "^1.0.1",
+    "@types/mocha": "^8.2.2",
     "c8": "^7.7.2",
     "chai": "^4.3.4",
     "eslint": "^7.27.0",
     "mocha": "^8.4.0",
-    "testdouble": "^3.16.1"
+    "react-native-ble-plx": "^2.0.2",
+    "testdouble": "^3.16.1",
+    "typescript": "^4.3.2"
   }
 }

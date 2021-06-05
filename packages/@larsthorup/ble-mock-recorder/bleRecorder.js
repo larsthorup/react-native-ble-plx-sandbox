@@ -2,8 +2,26 @@ import * as util from 'util';
 import { bufferFromBase64, isPrintableFromBase64, printableFromBase64 } from './base64.js';
 import { stringifyBleRecorderEvent, stringifyBleRecord } from './bleRecorderJsonProtocol.js';
 
+/** @typedef { import('react-native-ble-plx').Base64 } Base64 */
+/** @typedef { import('react-native-ble-plx').BleManager } BleManager */
+/** @typedef { import('react-native-ble-plx').DeviceId } DeviceId */
+/** @typedef { import('react-native-ble-plx').ConnectionOptions } ConnectionOptions */
+/** @typedef { import('react-native-ble-plx').UUID } UUID */
+
+/** @typedef { import('./recording').BleRecord } BleRecord */
+/** @typedef { import('./recording').CharacteristicListener } CharacteristicListener */
+/** @typedef { import('./recording').Device } Device */
+/** @typedef { import('./recording').DeviceDisconnectedListener } DeviceDisconnectedListener */
+/** @typedef { import('./recording').DeviceScanListener } DeviceScanListener */
+/** @typedef { import('./recording').EventProps } EventProps */
+/** @typedef { import('./recording').ScanOptions } ScanOptions */
+/** @typedef { import('./recording').Spec } Spec */
+/** @typedef { import('./recording').StateChangeListener } StateChangeListener */
+
+
 const recordingFileFormatVersion = '1.0.0';
 
+/** @param { Base64 } value */
 const formattedFromBase64 = (value) => {
   const valueBufferFormatted = util.format(bufferFromBase64(value));
   if (isPrintableFromBase64(value)) {
@@ -14,8 +32,14 @@ const formattedFromBase64 = (value) => {
 };
 
 export class BleManagerSpy {
+  /**
+   * @param { BleRecorder } recorder 
+   * @param { BleManager } bleManager 
+   */
   constructor(recorder, bleManager) {
+    /** @type { BleRecorder } */
     this._recorder = recorder;
+    /** @type { BleManager } */
     this._bleManager = bleManager;
   }
 
@@ -34,22 +58,35 @@ export class BleManagerSpy {
     return state;
   }
 
-  onStateChange(listener, emitCurrentState) {
-    this._recorder._record({
+  /** @typedef { import('./recording').OnStateChangeRequest } OnStateChangeRequest */
+
+  /** @param { StateChangeListener } listener */
+  onStateChange(listener, emitCurrentState = false) {
+    /** @type OnStateChangeRequest */
+    const request = {
+      emitCurrentState,
+    };
+    /** @type BleRecord */
+    const record = {
       type: 'command',
       command: 'onStateChange',
-      request: {
-        emitCurrentState,
-      },
-    });
+      request,
+      response: undefined,
+    };
+    this._recorder._record(record);
     this._bleManager.onStateChange((powerState) => {
-      this._recorder._recordEvent('stateChange', { powerState });
+      this._recorder._recordEvent({ event: 'stateChange', args: { powerState } });
       listener(powerState);
     }, emitCurrentState);
   }
 
+  /**
+   * @param { UUID[] | null } uuidList 
+   * @param { ScanOptions | null } scanOptions 
+   * @param { DeviceScanListener } listener 
+   */
   startDeviceScan(uuidList, scanOptions, listener) {
-    this._recorder._reported = [];
+    this._recorder._reportedDeviceIdList = [];
     this._recorder._record({
       type: 'command',
       command: 'startDeviceScan',
@@ -57,42 +94,50 @@ export class BleManagerSpy {
         uuidList,
         scanOptions,
       },
+      response: undefined,
     });
     this._bleManager.startDeviceScan(uuidList, scanOptions, (error, device) => {
       if (error) {
         const { message } = error;
-        this._recorder._recordEvent('deviceScan', { error: { message } });
+        this._recorder._recordEvent({ event: 'deviceScan', args: { device: null, error: { message } } });
         listener(error, device);
       } else if (device) {
         if (this._recorder.deviceMap) {
           if (this._recorder.isExpected(device)) {
-            const { id, localName, name } = this._recorder._recordDevice(device.id);
-            const { manufacturerData } = device;
-            this._recorder._recordEvent('deviceScan', {
-              device: { id, localName, manufacturerData, name },
+            this._recorder._recordEvent({
+              event: 'deviceScan',
+              args: {
+                device: this._recorder._recordDevice(device.id),
+                error: null,
+              },
             });
             listener(error, device);
           } else {
-            if (this._recorder._reported.indexOf(device.id) < 0) {
+            if (this._recorder._reportedDeviceIdList.indexOf(device.id) < 0) {
               this._recorder._log(`(ignoring device with id ${device.id} named ${device.name}. ManufacturerData: ${device.manufacturerData})`);
-              this._recorder._reported.push(device.id);
+              this._recorder._reportedDeviceIdList.push(device.id);
             }
             // Note: exclude unexpected scan responses from recording file for now as they are usually quite noisy
             // TODO: use filter mechanism for this
-            const { id, name } = device;
+            const { id, localName, manufacturerData, mtu, name, rssi } = device;
             this._recorder._exclude({
               type: 'event',
               event: 'deviceScan',
               args: {
-                device: { id, name },
-                error: undefined,
+                device: { id, localName, manufacturerData, mtu, name, rssi },
+                error: null,
               },
+              autoPlay: false,
             });
           }
         } else {
-          const { id, localName, name, manufacturerData } = device;
-          this._recorder._recordEvent('deviceScan', {
-            device: { id, localName, manufacturerData, name },
+          const { id, localName, manufacturerData, mtu, name, rssi } = device;
+          this._recorder._recordEvent({
+            event: 'deviceScan',
+            args: {
+              device: { id, localName, manufacturerData, mtu, name, rssi },
+              error: null,
+            },
           });
           listener(error, device);
         }
@@ -105,9 +150,12 @@ export class BleManagerSpy {
     this._recorder._record({
       type: 'command',
       command: 'stopDeviceScan',
+      request: {},
+      response: undefined,
     });
   }
 
+  /** @param { DeviceId } deviceId */
   async isDeviceConnected(deviceId) {
     const response = await this._bleManager.isDeviceConnected(deviceId);
     const { id } = this._recorder._recordDevice(deviceId);
@@ -120,44 +168,59 @@ export class BleManagerSpy {
     return response;
   }
 
+  /** @param { DeviceId } deviceId */
   async readRSSIForDevice(deviceId) {
     const response = await this._bleManager.readRSSIForDevice(deviceId);
-    const { id } = this._recorder._recordDevice(deviceId);
+    const { id, localName, manufacturerData, mtu, name } = this._recorder._recordDevice(deviceId);
     const rssi = this._recorder.recordRssi !== undefined ? this._recorder.recordRssi : response.rssi;
     this._recorder._record({
       type: 'command',
       command: 'readRSSIForDevice',
       request: { id },
-      response: { id, rssi },
+      response: { id, localName, manufacturerData, mtu, name, rssi },
     });
     return response;
   }
 
+  /**
+   * @param { DeviceId } deviceId 
+   * @param { ConnectionOptions } options 
+   * @returns 
+   */
   async connectToDevice(deviceId, options) {
     const device = await this._bleManager.connectToDevice(deviceId, options);
-    const { id } = this._recorder._recordDevice(deviceId);
+    const deviceRecord = this._recorder._recordDevice(deviceId);
+    const { id } = deviceRecord;
     this._recorder._record({
       type: 'command',
       command: 'connectToDevice',
-      request: { id, options },
-      response: { id },
+      request: {
+        id,
+        options
+      },
+      response: deviceRecord,
     });
     return device;
   }
 
+  /** @param { UUID[] } serviceUUIDs */
   async connectedDevices(serviceUUIDs) {
     const devices = await this._bleManager.connectedDevices(serviceUUIDs);
+    const response = devices.map(({ id }) => this._recorder._recordDevice(id));
     this._recorder._record({
       type: 'command',
       command: 'connectedDevices',
       request: { serviceUUIDs },
-      response: devices.map(({ id }) => ({
-        id: this._recorder._recordDevice(id).id,
-      })),
+      response,
     });
     return devices;
   }
 
+  /**
+   * @param { DeviceId } deviceId 
+   * @param { DeviceDisconnectedListener } listener 
+   * @returns 
+   */
   async onDeviceDisconnected(deviceId, listener) {
     const { id } = this._recorder._recordDevice(deviceId);
     this._recorder._record({
@@ -166,37 +229,60 @@ export class BleManagerSpy {
       request: {
         id,
       },
+      response: undefined,
     });
     const subscription = await this._bleManager.onDeviceDisconnected(
       deviceId,
       (error, device) => {
-        this._recorder._recordEvent('deviceDisconnected', {
-          device: {
-            ...this._recorder._recordDevice(device.id),
-          },
-          ...(error && { error: { message: error.message } }),
-        });
+        if (error) {
+          const { message } = error;
+          this._recorder._recordEvent({
+            event: 'deviceDisconnected',
+            args: {
+              device: null,
+              error: { message },
+            },
+          });
+        } else if (device) {
+          this._recorder._recordEvent({
+            event: 'deviceDisconnected',
+            args: {
+              device: this._recorder._recordDevice(device.id),
+              error: null,
+            },
+          });
+        }
         listener(error, device);
       },
     );
     return subscription;
   }
 
+  /**
+   * @param { DeviceId } deviceId 
+   * @param { number } mtu 
+   * @returns 
+   */
   async requestMTUForDevice(deviceId, mtu) {
     const device = await this._bleManager.requestMTUForDevice(deviceId, mtu);
-    const { id } = this._recorder._recordDevice(deviceId);
+    const { id, localName, manufacturerData, name, rssi } = this._recorder._recordDevice(deviceId);
     this._recorder._record({
       type: 'command',
       command: 'requestMTUForDevice',
       request: { id, mtu },
       response: {
         id,
+        localName,
+        manufacturerData,
         mtu: device.mtu,
+        name,
+        rssi,
       },
     });
     return device;
   }
 
+  /** @param { DeviceId } deviceId */
   async discoverAllServicesAndCharacteristicsForDevice(deviceId) {
     await this._bleManager.discoverAllServicesAndCharacteristicsForDevice(deviceId);
     const { id } = this._recorder._recordDevice(deviceId);
@@ -204,9 +290,11 @@ export class BleManagerSpy {
       type: 'command',
       command: 'discoverAllServicesAndCharacteristicsForDevice',
       request: { id },
+      response: undefined,
     });
   }
 
+  /** @param { DeviceId[] } deviceIdentifiers */
   async devices(deviceIdentifiers) {
     const deviceList = await this._bleManager.devices(deviceIdentifiers);
     this._recorder._record({
@@ -220,6 +308,7 @@ export class BleManagerSpy {
     return deviceList;
   }
 
+  /** @param { DeviceId } deviceId */
   async servicesForDevice(deviceId) {
     const services = await this._bleManager.servicesForDevice(deviceId);
     const { id } = this._recorder._recordDevice(deviceId);
@@ -232,6 +321,10 @@ export class BleManagerSpy {
     return services;
   }
 
+  /**
+   * @param { DeviceId } deviceId 
+   * @param { UUID } serviceUUID 
+   */
   async characteristicsForDevice(deviceId, serviceUUID) {
     const characteristics = await this._bleManager.characteristicsForDevice(deviceId, serviceUUID);
     const { id } = this._recorder._recordDevice(deviceId);
@@ -239,11 +332,17 @@ export class BleManagerSpy {
       type: 'command',
       command: 'characteristicsForDevice',
       request: { id, serviceUUID },
-      response: characteristics.map(({ uuid }) => ({ uuid })),
+      response: characteristics.map(({ uuid }) => ({ serviceUUID, uuid, value: null })),
     });
     return characteristics;
   }
 
+  /**
+   * @param { DeviceId } deviceId 
+   * @param { UUID } serviceUUID 
+   * @param { UUID } characteristicUUID 
+   * @returns 
+   */
   async readCharacteristicForDevice(deviceId, serviceUUID, characteristicUUID) {
     const characteristic = await this._bleManager.readCharacteristicForDevice(
       deviceId,
@@ -257,18 +356,26 @@ export class BleManagerSpy {
       type: 'command',
       command: 'readCharacteristicForDevice',
       request: {
+        characteristicUUID,
         id,
         serviceUUID,
-        characteristicUUID,
       },
       response: {
+        serviceUUID,
+        uuid: characteristicUUID,
         value,
       },
-      ...(this._recorder._debugFor({ serviceUUID, characteristicUUID, value })),
+      ...(this._recorder._debugFor(characteristicUUID, serviceUUID, value)),
     });
     return characteristic;
   }
 
+  /**
+   * @param { DeviceId } deviceId 
+   * @param { UUID } serviceUUID 
+   * @param { UUID } characteristicUUID 
+   * @param { CharacteristicListener} listener 
+   */
   async monitorCharacteristicForDevice(deviceId, serviceUUID, characteristicUUID, listener) {
     const { id } = this._recorder._recordDevice(deviceId);
     this._recorder._record({
@@ -279,36 +386,55 @@ export class BleManagerSpy {
         serviceUUID,
         characteristicUUID,
       },
-      ...(this._recorder._debugFor({ serviceUUID, characteristicUUID })),
+      response: undefined,
+      ...(this._recorder._debugFor(characteristicUUID, serviceUUID)),
     });
     const subscription = await this._bleManager.monitorCharacteristicForDevice(
       deviceId,
       serviceUUID,
       characteristicUUID,
       (error, characteristic) => {
-        const { uuid, value } = characteristic;
-        // Note: eventually support using recordValue, maybe stored per characteristic?
-        // TODO: support filter here
-        this._recorder._record({
-          type: 'event',
-          event: 'characteristic',
-          autoPlay: true,
-          args: {
-            characteristic: {
-              serviceUUID,
-              uuid,
-              value,
+        if (characteristic && !error) {
+          const { uuid, value } = characteristic;
+          // Note: eventually support using recordValue, maybe stored per characteristic?
+          // TODO: support filter here
+          this._recorder._record({
+            type: 'event',
+            event: 'characteristic',
+            args: {
+              characteristic: {
+                serviceUUID,
+                uuid,
+                value,
+              },
+              error: null,
             },
-            error: error ? { message: error.message } : undefined,
-          },
-          ...(this._recorder._debugFor({ serviceUUID, uuid, value })),
-        });
+            autoPlay: true,
+            ...(this._recorder._debugFor(uuid, serviceUUID, value)),
+          });
+        } else if (error) {
+          this._recorder._record({
+            type: 'event',
+            event: 'characteristic',
+            args: {
+              characteristic: null,
+              error: { message: error.message },
+            },
+            autoPlay: true,
+          });
+        }
         listener(error, characteristic);
       },
     );
     return subscription;
   }
 
+  /**
+   * @param { DeviceId } deviceId 
+   * @param { UUID } serviceUUID 
+   * @param { UUID } characteristicUUID 
+   * @param { Base64 } value 
+   */
   async writeCharacteristicWithResponseForDevice(deviceId, serviceUUID, characteristicUUID, value) {
     const response = await this._bleManager.writeCharacteristicWithResponseForDevice(deviceId, serviceUUID, characteristicUUID, value);
     const { id } = this._recorder._recordDevice(deviceId);
@@ -321,71 +447,108 @@ export class BleManagerSpy {
         characteristicUUID,
         value,
       },
-      ...(this._recorder._debugFor({ serviceUUID, characteristicUUID, value })),
+      response: {
+        serviceUUID,
+        uuid: characteristicUUID,
+        value: null,
+      },
+      ...(this._recorder._debugFor(characteristicUUID, serviceUUID, value)),
     });
     return response;
   }
 }
 
+/** @typedef { { bleManager: BleManager, deviceMap?: DeviceMap, logger: Logger, nameFromUUID?: NameFromUUID, recordingName?: string } } BleRecorderOptions */
+/** @typedef { { localName?: string, name: string, manufacturerData?: Base64 } } RecordDevice */
+/** @typedef { { expected: Record<string, {name: string, recordId: string}>, record: Record<string, RecordDevice>} } DeviceMap */
+/** @typedef { (line: string) => void } Logger */
+/** @typedef { Record<UUID, string> } NameFromUUID */
+/** @typedef { { [key: string]: { seen: number } } } SpecState */
+
+/** @typedef { { event: 'init', name: string, version: string } } InitEvent */
+/** @typedef { { event: 'save', name: string } } SaveEvent */
+/** @typedef { InitEvent | SaveEvent } RecorderEvent */
 export class BleRecorder {
-  constructor({ bleManager, recordingName, deviceMap, logger, nameFromUuid }) {
+  /**
+   * @param { BleRecorderOptions } options
+   */
+  constructor(options) {
+    const { bleManager, deviceMap, logger, nameFromUUID, recordingName } = options;
     this.bleManagerSpy = new BleManagerSpy(this, bleManager);
     this.recordingName = recordingName || 'default';
     this.deviceMap = deviceMap;
-    this.nameFromUuid = nameFromUuid || {};
+    this.nameFromUuid = nameFromUUID || {};
+    /** @type { number | undefined } */
     this.recordRssi = undefined;
+    /** @type { Spec } */
     this.spec = {};
     this._logger = logger || console.log;
+    /** @type { DeviceId[] } */
+    this._reportedDeviceIdList = [];
+    /** @type { SpecState } */
     this._specState = {
       ['deviceScan']: { seen: 0 },
     };
+    /** @type { Base64[] } */
     this._recordValueQueue = [];
     this._logRecorderEvent({ event: 'init', name: this.recordingName, version: recordingFileFormatVersion });
   }
 
+  /** @param { string } line */
   _log(line) {
     this._logger(line);
   }
 
+  /** @param { RecorderEvent } recorderEvent */
   _logRecorderEvent(recorderEvent) {
     this._log(stringifyBleRecorderEvent(recorderEvent));
   }
 
+  /** @param { BleRecord } record */
   _record(record) {
     this._log(stringifyBleRecord(record));
   }
 
-  _recordEvent(event, args) {
+  /** @param { EventProps } props */
+  _recordEvent(props) {
+    const { event } = props;
+    const autoPlay = false;
     // TODO: if exclude filter call _exclude instead
     const spec = this.spec[event];
     if (spec) {
       ++this._specState[event].seen;
       if (this._specState[event].seen > spec.keep) {
         // Note: we have already seen enough of this type of event, so we will exclude this one
-        this._exclude({ type: 'event', event, args });
+        this._exclude({ type: 'event', ...props, autoPlay });
       } else {
         // Note: we might exclude future instances of this event, so we will include the spec in this record
-        this._record({ type: 'event', event, args, spec });
+        this._record({ type: 'event', ...props, spec, autoPlay });
       }
     } else {
-      this._record({ type: 'event', event, args });
+      this._record({ type: 'event', ...props, autoPlay });
     }
   }
 
-  _exclude(item) {
+  /** @param { BleRecord } record */
+  _exclude(record) {
     // Note: eventually support a "verbose" option for outputting these
-    // this._log(`(excluding ${JSON.stringify(item)})`);
+    // this._log(`(excluding ${JSON.stringify(record)})`);
   }
 
-  _debugFor({ serviceUUID, characteristicUUID, value }) {
+  /**
+   * @param { UUID } characteristicUUID 
+   * @param { UUID } serviceUUID 
+   * @param { string | null } value
+   */
+  _debugFor(characteristicUUID, serviceUUID, value = null) {
     const serviceName = this.nameFromUuid[serviceUUID];
     const characteristicName = this.nameFromUuid[characteristicUUID];
-    if (serviceName || characteristicName || value !== undefined) {
+    if (serviceName || characteristicName || value !== null) {
       return {
         debug: {
           ...(serviceName && { serviceUUID: serviceName }),
           ...(characteristicName && { characteristicUUID: characteristicName }),
-          ...(value !== undefined && { value: formattedFromBase64(value) }),
+          ...(value !== null && { value: formattedFromBase64(value) }),
         },
       };
     } else {
@@ -393,18 +556,30 @@ export class BleRecorder {
     }
   }
 
+  /**
+   * @param { DeviceId } deviceId 
+   * @returns Device
+   */
   _recordDevice(deviceId) {
     if (this.deviceMap && this.deviceMap.expected[deviceId]) {
       const { recordId: id } = this.deviceMap.expected[deviceId];
-      return {
+      const { localName, manufacturerData, name } = this.deviceMap.record[id];
+      return /** @type Device */ ({
         id,
-        ...(this.deviceMap.record[id]),
-      };
+        localName: localName || null,
+        manufacturerData: manufacturerData || null,
+        name,
+        rssi: null,
+      });
     } else {
       // Note: no device mapping for this device
-      return {
+      return /** @type Device */ ({
         id: deviceId,
-      };
+        localName: null,
+        name: null,
+        manufacturerData: null,
+        rssi: null,
+      });
     }
   }
 
@@ -412,6 +587,7 @@ export class BleRecorder {
     return this._recordValueQueue.shift();
   }
 
+  /** @param { string } label */
   label(label) {
     this._record({ type: 'label', label });
   }
@@ -421,10 +597,12 @@ export class BleRecorder {
     this._logRecorderEvent({ event: 'save', name: this.recordingName });
   }
 
+  /** @param { Device } device */
   isExpected(device) {
     return this.deviceMap && this.deviceMap.expected[device.id];
   }
 
+  /** @param { Base64 } value */
   queueRecordValue(value) {
     this._recordValueQueue.push(value);
   }

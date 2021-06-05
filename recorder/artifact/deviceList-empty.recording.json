@@ -12,7 +12,8 @@
       "event": "stateChange",
       "args": {
         "powerState": "PoweredOn"
-      }
+      },
+      "autoPlay": false
     },
     {
       "type": "command",
