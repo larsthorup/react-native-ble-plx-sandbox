@@ -74,9 +74,9 @@ const mockSpawn = async () => {
 const expectOutputMatch = (output, expectedOutputRegExp) => {
   for (let i = 0; i < output.length; ++i) {
     const regexp = new RegExp(expectedOutputRegExp[i]
-      .replaceAll('\u001b[', '\u001b\\[')
-      .replaceAll('(', '\\(')
-      .replaceAll(')', '\\)'),
+      .replace(/\u001b\[/g, '\u001b\\[')
+      .replace(/\(/g, '\\(')
+      .replace(/\)/g, '\\)'),
     );
     try {
       expect(output[i]).to.match(regexp);
