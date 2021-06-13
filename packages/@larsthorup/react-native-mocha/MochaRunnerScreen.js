@@ -18,7 +18,7 @@ const MochaRunnerScreen = () => {
     }
   }, [isRunning]);
   return (
-    <SafeAreaView>
+    <SafeAreaView style={{ backgroundColor: 'black' }}>
       <StatusBar />
       <ScrollView>
         <Text style={styles.heading}>Test Runner</Text>
