@@ -2,6 +2,7 @@
   "name": "@larsthorup/ble-mock-recorder",
   "version": "0.0.6",
   "type": "module",
+  "exports": "./index.js",
   "scripts": {
     "bump": "npm --no-git-tag-version version patch",
     "c8": "c8 --reporter=lcov --reporter=text-summary mocha",

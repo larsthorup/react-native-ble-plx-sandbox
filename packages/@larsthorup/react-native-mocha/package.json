@@ -2,6 +2,7 @@
   "name": "@larsthorup/react-native-mocha",
   "version": "0.0.6",
   "type": "module",
+  "exports": "./index.js",
   "scripts": {
     "bump": "npm --no-git-tag-version version patch",
     "eslint": "eslint . --fix --max-warnings 0 --ignore-path .gitignore",
