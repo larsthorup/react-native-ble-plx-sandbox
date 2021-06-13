@@ -27,6 +27,7 @@ const execMock = (expected) => {
 
 const createExecMock = () => {
   return execMock([
+    { cmd: 'adb shell getprop ro.build.version.release', result: { stdout: '11' } },
     { cmd: 'adb logcat -c' },
     { cmd: `adb shell pm clear ${env.PACKAGE_NAME}` },
     { cmd: `adb shell am start -n '${env.PACKAGE_NAME}/.MainActivity'` },
@@ -89,6 +90,7 @@ const expectOutputMatch = (output, expectedOutputRegExp) => {
 const expectedRecordingPath = './artifact/rnMochaLauncher.test.simulated.recording.json';
 
 const expectedOutputRegExp = [
+  'Android version detected: 11',
   'Launching test runner on device...',
   'Allowing app to run with necessary permissions',
   'Running tests...',

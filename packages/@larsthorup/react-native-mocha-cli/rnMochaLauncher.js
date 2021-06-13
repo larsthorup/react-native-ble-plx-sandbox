@@ -9,6 +9,11 @@ const lineTransformer = (input) => readline.createInterface({ input });
 
 export const launch = async ({ appName, env, exec, expectedFailCount, log, spawn }) => {
 
+  // get platform version
+  const { stdout: roBuildVersionRelease } = await exec('adb shell getprop ro.build.version.release');
+  const platformVersion = parseInt(roBuildVersionRelease);
+  log(`Android version detected: ${platformVersion}`);
+
   // clear adb log
   await exec('adb logcat -c');
 
@@ -45,7 +50,10 @@ export const launch = async ({ appName, env, exec, expectedFailCount, log, spawn
       },
     });
     const view = fs.readFileSync(viewLocalPath, 'utf-8');
-    const viewMatch = view.match(/resource-id="com.android.permissioncontroller:id\/permission_allow_foreground_only_button"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/);
+    const resourceId = platformVersion < 10 ? 'com.android.packageinstaller:id\\/permission_allow_button' : 'com.android.permissioncontroller:id\\/permission_allow_foreground_only_button';
+    const boundsPattern = `resource-id="${resourceId}"[^>]*bounds="\\[(\\d+),(\\d+)\\]\\[(\\d+),(\\d+)\\]"`;
+    const viewMatch = view.match(new RegExp(boundsPattern));
+
     if (viewMatch) {
       const [x1str, y1str, x2str, y2str] = viewMatch.slice(1);
       const [x1, y1, x2, y2] = [x1str, y1str, x2str, y2str].map((str) => Number(str));
