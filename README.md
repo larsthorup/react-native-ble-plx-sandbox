@@ -1,6 +1,6 @@
 # react-native-ble-plx-sandbox
 
-[![Build Status](https://travis-ci.com/larsthorup/react-native-ble-plx-sandbox.svg?branch=main)](https://travis-ci.com/larsthorup/react-native-ble-plx-sandbox)
+[![Build Status](https://github.com/larsthorup/react-native-ble-plx-sandbox/actions/workflows/ci.yml/badge.svg)](https://github.com/larsthorup/react-native-ble-plx-sandbox/actions/workflows/ci.yml)
 
 Prerequisites:
 
