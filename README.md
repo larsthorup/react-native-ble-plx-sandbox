@@ -1,6 +1,10 @@
-# react-native-ble-plx-sandbox
+# (DEPRECATED) react-native-ble-plx-sandbox
 
-[![Build Status](https://github.com/larsthorup/react-native-ble-plx-sandbox/actions/workflows/ci.yml/badge.svg)](https://github.com/larsthorup/react-native-ble-plx-sandbox/actions/workflows/ci.yml)
+!! PLEASE USE [react-native-ble-plx-mock-recorder](https://github.com/larsthorup/react-native-ble-plx-mock-recorder/) instead !!
+
+(this repo was only used temporarily during development)
+
+---
 
 Prerequisites:
 
